@@ -1,0 +1,4 @@
+BasedOnStyle: Microsoft
+ConstructorInitializerIndentWidth: 2
+PackConstructorInitializers: Never
+BreakInheritanceList: BeforeComma

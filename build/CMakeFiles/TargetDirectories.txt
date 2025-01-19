@@ -1,0 +1,3 @@
+/home/nithin/college/play/gamedev/serenity/build/CMakeFiles/serenity.dir
+/home/nithin/college/play/gamedev/serenity/build/CMakeFiles/edit_cache.dir
+/home/nithin/college/play/gamedev/serenity/build/CMakeFiles/rebuild_cache.dir

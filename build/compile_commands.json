@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/home/nithin/college/play/gamedev/serenity/build",
+  "command": "/usr/bin/c++  -I/home/nithin/college/play/gamedev/serenity/include -I/home/nithin/college/play/gamedev/serenity/src -g -std=gnu++17 -Wall -Wextra -Wpedantic -I/usr/local/include -o CMakeFiles/serenity.dir/src/game.cpp.o -c /home/nithin/college/play/gamedev/serenity/src/game.cpp",
+  "file": "/home/nithin/college/play/gamedev/serenity/src/game.cpp",
+  "output": "CMakeFiles/serenity.dir/src/game.cpp.o"
+},
+{
+  "directory": "/home/nithin/college/play/gamedev/serenity/build",
+  "command": "/usr/bin/c++  -I/home/nithin/college/play/gamedev/serenity/include -I/home/nithin/college/play/gamedev/serenity/src -g -std=gnu++17 -Wall -Wextra -Wpedantic -I/usr/local/include -o CMakeFiles/serenity.dir/src/main.cpp.o -c /home/nithin/college/play/gamedev/serenity/src/main.cpp",
+  "file": "/home/nithin/college/play/gamedev/serenity/src/main.cpp",
+  "output": "CMakeFiles/serenity.dir/src/main.cpp.o"
+}
+]
