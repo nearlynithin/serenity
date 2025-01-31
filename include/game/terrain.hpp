@@ -20,6 +20,7 @@ class Terrain
     void updateTerrain(float time, float offestx, float offesty);
     Model &getTerrain();
     void DrawTerrain();
+    void setTexture();
 };
 
 #endif

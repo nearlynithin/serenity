@@ -1,4 +1,5 @@
 #include "game/terrain.hpp"
+#include "game/resource.hpp"
 #include "perlin.hpp"
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +22,8 @@ Terrain::Terrain(float width, float length, float offsetx, float offsety)
         vertexData[i + 1] = perlin(scaledX + offsetx, scaledZ + offsety, 1.0f) * heightMultiplier;
     }
     UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
+
+    setTexture();
 }
 
 void Terrain::updateTerrain(float time, float offsetx, float offsety)
@@ -40,9 +43,16 @@ Model &Terrain::getTerrain()
     return terrain;
 }
 
+void Terrain::setTexture()
+{
+    terrain.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture =
+        ResourceManager::getInstance().GetTexture("terrainTexture");
+}
+
 Terrain::~Terrain()
 {
     free(vertexData);
     UnloadMesh(mesh);
     UnloadModel(terrain);
+    UnloadTexture(terrain.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture);
 }
