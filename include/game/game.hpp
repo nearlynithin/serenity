@@ -1,23 +1,37 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "game/terrain.hpp"
 #include "raylib.h"
+#include <memory>
+#include <vector>
 
-class Game {
-public:
-  Game();
-  bool Initialize();
-  void RunLoop();
-  void Shutdown();
+class Game
+{
+  public:
+    Game();
 
-private:
-  void ProcessInput();
-  void UpdateGame();
-  void GenerateOutput();
+    bool Initialize();
+    void RunLoop();
+    void Shutdown();
 
-  const int screenWidth;
-  const int screenHeight;
-  bool mIsRunning;
+  private:
+    void ProcessInput();
+    void UpdateGame();
+    void GenerateOutput();
+
+    float time;
+
+    const int screenWidth;
+    const int screenHeight;
+    bool mIsRunning;
+
+    float x = 0;
+    float y = 0;
+    float z = 0;
+
+    Camera camera;
+    std::vector<std::unique_ptr<Terrain>> terrains;
 };
 
 #endif
