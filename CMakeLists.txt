@@ -30,6 +30,8 @@ endif()
 set(SOURCES 
     src/game.cpp
     src/main.cpp
+    src/terrain.cpp
+    src/perlin.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
