@@ -1,4 +1,5 @@
 #include "game/game.hpp"
+#include "game/resource.hpp"
 #include "game/terrain.hpp"
 #include "raymath.h"
 #include "rlgl.h"
@@ -18,10 +19,13 @@ bool Game::Initialize()
     // Multi-Sample Anti-Aliasing (MSAA) with 4x sampling.
     SetConfigFlags(FLAG_MSAA_4X_HINT);
 
-    InitWindow(screenWidth, screenHeight, "Cpp setup");
+    InitWindow(screenWidth, screenHeight, "Serenity");
 
-    SetTargetFPS(200);
+    SetTargetFPS(60);
     DisableCursor();
+
+    // LoadTextures
+    LoadAllTextures();
 
     terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 0.0f, 0.0f)); // RED  (0,0)
     terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 0.0f, 4.5f)); // WHITE (0,1)
@@ -74,6 +78,12 @@ void Game::RunLoop()
     }
 }
 
+void Game::LoadAllTextures()
+{
+    auto &resourceManager = ResourceManager::getInstance();
+    resourceManager.LoadTex("terrainTexture", "assets/ground.png");
+}
+
 void Game::ProcessInput()
 {
 }
@@ -94,21 +104,19 @@ void Game::GenerateOutput()
     BeginMode3D(camera);
 
     rlPushMatrix();
-    rlEnableWireMode();
+    // rlEnableWireMode();
 
-    DrawModel(terrains[0]->getTerrain(), Vector3Zero(), 0.1, RED);                  // (0,0)
-    DrawModel(terrains[1]->getTerrain(), (Vector3){0.0f, 0.0f, 50.0f}, 0.1, WHITE); // (0,1)
-    DrawModel(terrains[2]->getTerrain(), (Vector3){0.0f, 0.0f, 100.0f}, 0.1, BLUE); // (0,2)
+    DrawModel(terrains[0]->getTerrain(), Vector3Zero(), 0.1, WHITE);                 // (0,0)
+    DrawModel(terrains[1]->getTerrain(), Vector3{0.0f, 0.0f, 50.0f}, 0.1, WHITE);    // (0,1)
+    DrawModel(terrains[2]->getTerrain(), Vector3{0.0f, 0.0f, 100.0f}, 0.1, WHITE);   // (0,)
+    DrawModel(terrains[3]->getTerrain(), Vector3{50.0f, 0.0f, 0.0f}, 0.1, WHITE);    // (1,0)
+    DrawModel(terrains[4]->getTerrain(), Vector3{50.0f, 0.0f, 50.0f}, 0.1, WHITE);   // (1,1)
+    DrawModel(terrains[5]->getTerrain(), Vector3{50.0f, 0.0f, 100.0f}, 0.1, WHITE);  // (1,)
+    DrawModel(terrains[6]->getTerrain(), Vector3{100.0f, 0.0f, 0.0f}, 0.1, WHITE);   // (2,0)
+    DrawModel(terrains[7]->getTerrain(), Vector3{100.0f, 0.0f, 50.0f}, 0.1, WHITE);  // (2,1)
+    DrawModel(terrains[8]->getTerrain(), Vector3{100.0f, 0.0f, 100.0f}, 0.1, WHITE); // (2,2)
 
-    DrawModel(terrains[3]->getTerrain(), (Vector3){50.0f, 0.0f, 0.0f}, 0.1, GREEN);    // (1,0)
-    DrawModel(terrains[4]->getTerrain(), (Vector3){50.0f, 0.0f, 50.0f}, 0.1, YELLOW);  // (1,1)
-    DrawModel(terrains[5]->getTerrain(), (Vector3){50.0f, 0.0f, 100.0f}, 0.1, ORANGE); // (1,2)
-
-    DrawModel(terrains[6]->getTerrain(), (Vector3){100.0f, 0.0f, 0.0f}, 0.1, MAROON);    // (2,0)
-    DrawModel(terrains[7]->getTerrain(), (Vector3){100.0f, 0.0f, 50.0f}, 0.1, PURPLE);   // (2,1)
-    DrawModel(terrains[8]->getTerrain(), (Vector3){100.0f, 0.0f, 100.0f}, 0.1, MAGENTA); // (2,2)
-
-    rlDisableWireMode();
+    // rlDisableWireMode();
     rlPopMatrix();
     EndMode3D();
 

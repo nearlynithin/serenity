@@ -1,9 +1,11 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "game/resource.hpp"
 #include "game/terrain.hpp"
 #include "raylib.h"
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 class Game
@@ -20,6 +22,8 @@ class Game
     void UpdateGame();
     void GenerateOutput();
 
+    void LoadAllTextures();
+
     float time;
 
     const int screenWidth;
@@ -31,6 +35,7 @@ class Game
     float z = 0;
 
     Camera camera;
+    ResourceManager resourceManager;
     std::vector<std::unique_ptr<Terrain>> terrains;
 };
 
