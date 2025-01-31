@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/serenity.dir/src/game.cpp.o CMakeFiles/serenity.dir/src/main.cpp.o -o serenity  -Wl,-rpath,/usr/local/lib /usr/local/lib/libraylib.so -lm -lpthread -ldl -L/usr/local/lib -lraylib 
