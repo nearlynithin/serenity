@@ -38,12 +38,17 @@ class ResourceManager
         return it->second;
     }
 
-    // Destructor
-    ~ResourceManager()
+    // Manually unloading resources
+    void UnloadAll()
     {
-        for (auto &texture : textures)
+        if (!textures.empty())
         {
-            UnloadTexture(texture.second);
+            for (auto &texture : textures)
+            {
+                UnloadTexture(texture.second);
+            }
+            textures.clear();
+            std::cout << "Textures unloaded\n";
         }
     }
 };

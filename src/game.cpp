@@ -61,6 +61,9 @@ bool Game::Initialize()
 
 void Game::Shutdown()
 {
+    // Destroying resource manager
+    ResourceManager::getInstance().UnloadAll();
+
     if (mIsRunning)
     {
         mIsRunning = false;

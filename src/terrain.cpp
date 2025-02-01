@@ -52,7 +52,5 @@ void Terrain::setTexture()
 Terrain::~Terrain()
 {
     free(vertexData);
-    UnloadMesh(mesh);
-    UnloadModel(terrain);
-    UnloadTexture(terrain.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture);
+    // Terrain objects are automatically destroyed because of unique_ptr
 }
