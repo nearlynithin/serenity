@@ -10,6 +10,7 @@ class ResourceManager
 {
   private:
     std::unordered_map<std::string, Texture2D> textures;
+    std::unordered_map<std::string, Shader> shaders;
 
   public:
     static ResourceManager &getInstance()
@@ -38,6 +39,28 @@ class ResourceManager
         return it->second;
     }
 
+    // Shader Manager
+    void Loadshader(const std::string &shaderName, const std::string &vertexShaderPath,
+                    const std::string &fragmentShaderPath)
+    {
+        shaders[shaderName] = LoadShader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+
+        if (!IsShaderReady(shaders[shaderName]))
+        {
+            std::cerr << "Shader not ready : " << shaderName << "\n";
+        }
+    }
+
+    Shader &getShader(const std::string &name)
+    {
+        auto it = shaders.find(name);
+        if (it == shaders.end())
+        {
+            std::cerr << "Shader not found : " << name << "\n";
+        }
+        return it->second;
+    }
+
     // Manually unloading resources
     void UnloadAll()
     {
@@ -49,6 +72,16 @@ class ResourceManager
             }
             textures.clear();
             std::cout << "Textures unloaded\n";
+        }
+
+        if (!shaders.empty())
+        {
+            for (auto &shader : shaders)
+            {
+                UnloadShader(shader.second);
+            }
+            shaders.clear();
+            std::cout << "Shaders unloaded\n";
         }
     }
 };
