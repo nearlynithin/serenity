@@ -28,7 +28,7 @@ class ResourceManager
             std::cout << "Not ready " << textureName << "\n";
     }
 
-    Texture2D GetTexture(const std::string &name)
+    Texture2D &GetTexture(const std::string &name)
     {
         auto it = textures.find(name);
         if (it == textures.end())
