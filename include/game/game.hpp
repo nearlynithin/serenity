@@ -1,6 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "game/lights.hpp"
 #include "game/resource.hpp"
 #include "game/terrain.hpp"
 #include "raylib.h"
@@ -23,6 +24,10 @@ class Game
     void GenerateOutput();
 
     void LoadAllTextures();
+    void LoadAllShaders();
+
+    void SetLights();
+    void UpdateShaders();
 
     float time;
 

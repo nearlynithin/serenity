@@ -1,4 +1,5 @@
 #include "game/game.hpp"
+#include "game/lights.hpp"
 #include "game/resource.hpp"
 #include "game/terrain.hpp"
 #include "raymath.h"
@@ -11,6 +12,17 @@ Game::Game()
     mIsRunning(false),
     time(GetTime())
 {
+}
+
+void Game::LoadAllTextures()
+{
+    auto &resourceManager = ResourceManager::getInstance();
+    resourceManager.LoadTex("terrainTexture", "assets/ground.png");
+}
+void Game::LoadAllShaders()
+{
+    auto &resourceManager = ResourceManager::getInstance();
+    resourceManager.Loadshader("terrainLightShader", "assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
 }
 
 bool Game::Initialize()
@@ -26,6 +38,8 @@ bool Game::Initialize()
 
     // LoadTextures
     LoadAllTextures();
+    // Load all shaders
+    LoadAllShaders();
 
     terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 0.0f, 0.0f)); // RED  (0,0)
     terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 0.0f, 4.5f)); // WHITE (0,1)
@@ -38,6 +52,8 @@ bool Game::Initialize()
     terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 9.0f, 0.0f)); // CYAN  (2,0)
     terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 9.0f, 4.5f)); // PURPLE(2,1)
     terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 9.0f, 9.0f)); // MAGENTA(2,2)
+
+    SetLights();
 
     // Setup camera
     camera = {
@@ -81,10 +97,19 @@ void Game::RunLoop()
     }
 }
 
-void Game::LoadAllTextures()
+void Game::SetLights()
 {
-    auto &resourceManager = ResourceManager::getInstance();
-    resourceManager.LoadTex("terrainTexture", "assets/ground.png");
+    Shader t_light = ResourceManager::getInstance().getShader("terrainLightShader");
+    CreateLight("terrainlight", LIGHT_POINT, Vector3{-2, 5, -2}, Vector3Zero(), YELLOW, 1.0f, t_light);
+    CreateLight("terrainlight2", LIGHT_POINT, Vector3{100, 5, -2}, Vector3Zero(), BLUE, 1.0f, t_light);
+}
+void Game::UpdateShaders()
+{
+    // Shader t_light = ResourceManager::getInstance().getShader("terrainLightShader");
+    // float cameraPos[3] = {camera.position.x, camera.position.y, camera.position.z};
+    // SetShaderValue(t_light, t_light.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
+    // UpdateLight(t_light, "terrainlight");
+    // UpdateLight(t_light, "terrainlight2");
 }
 
 void Game::ProcessInput()
@@ -95,6 +120,7 @@ void Game::UpdateGame()
 {
     // std::cout << "update game\n";
     UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+    UpdateShaders();
 }
 
 void Game::GenerateOutput()
@@ -102,25 +128,29 @@ void Game::GenerateOutput()
     time += GetFrameTime();
 
     BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground(DARKGRAY);
 
     BeginMode3D(camera);
+
+    BeginShaderMode(ResourceManager::getInstance().getShader("terrainLightShader"));
 
     rlPushMatrix();
     // rlEnableWireMode();
 
-    DrawModel(terrains[0]->getTerrain(), Vector3Zero(), 0.1, WHITE);                 // (0,0)
-    DrawModel(terrains[1]->getTerrain(), Vector3{0.0f, 0.0f, 50.0f}, 0.1, WHITE);    // (0,1)
-    DrawModel(terrains[2]->getTerrain(), Vector3{0.0f, 0.0f, 100.0f}, 0.1, WHITE);   // (0,)
-    DrawModel(terrains[3]->getTerrain(), Vector3{50.0f, 0.0f, 0.0f}, 0.1, WHITE);    // (1,0)
-    DrawModel(terrains[4]->getTerrain(), Vector3{50.0f, 0.0f, 50.0f}, 0.1, WHITE);   // (1,1)
-    DrawModel(terrains[5]->getTerrain(), Vector3{50.0f, 0.0f, 100.0f}, 0.1, WHITE);  // (1,)
-    DrawModel(terrains[6]->getTerrain(), Vector3{100.0f, 0.0f, 0.0f}, 0.1, WHITE);   // (2,0)
-    DrawModel(terrains[7]->getTerrain(), Vector3{100.0f, 0.0f, 50.0f}, 0.1, WHITE);  // (2,1)
-    DrawModel(terrains[8]->getTerrain(), Vector3{100.0f, 0.0f, 100.0f}, 0.1, WHITE); // (2,2)
+    DrawModel(terrains[0]->getTerrain(), Vector3Zero(), 0.1, DARKBROWN);                 // (0,0)
+    DrawModel(terrains[1]->getTerrain(), Vector3{0.0f, 0.0f, 50.0f}, 0.1, DARKBROWN);    // (0,1)
+    DrawModel(terrains[2]->getTerrain(), Vector3{0.0f, 0.0f, 100.0f}, 0.1, DARKBROWN);   // (0,)
+    DrawModel(terrains[3]->getTerrain(), Vector3{50.0f, 0.0f, 0.0f}, 0.1, DARKBROWN);    // (1,0)
+    DrawModel(terrains[4]->getTerrain(), Vector3{50.0f, 0.0f, 50.0f}, 0.1, DARKBROWN);   // (1,1)
+    DrawModel(terrains[5]->getTerrain(), Vector3{50.0f, 0.0f, 100.0f}, 0.1, DARKBROWN);  // (1,)
+    DrawModel(terrains[6]->getTerrain(), Vector3{100.0f, 0.0f, 0.0f}, 0.1, DARKBROWN);   // (2,0)
+    DrawModel(terrains[7]->getTerrain(), Vector3{100.0f, 0.0f, 50.0f}, 0.1, DARKBROWN);  // (2,1)
+    DrawModel(terrains[8]->getTerrain(), Vector3{100.0f, 0.0f, 100.0f}, 0.1, DARKBROWN); // (2,2)
 
     // rlDisableWireMode();
     rlPopMatrix();
+
+    EndShaderMode();
     EndMode3D();
 
     EndDrawing();
