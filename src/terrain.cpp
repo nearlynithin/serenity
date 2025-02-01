@@ -24,6 +24,7 @@ Terrain::Terrain(float width, float length, float offsetx, float offsety)
     UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
 
     setTexture();
+    setShader();
 }
 
 void Terrain::updateTerrain(float time, float offsetx, float offsety)
@@ -47,6 +48,17 @@ void Terrain::setTexture()
 {
     terrain.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture =
         ResourceManager::getInstance().GetTexture("terrainTexture");
+}
+
+void Terrain::setShader()
+{
+    Shader lightShader = ResourceManager::getInstance().getShader("terrainLightShader");
+    terrain.materials[0].shader = lightShader;
+    lightShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(lightShader, "viewPos");
+    // Ambient light level (some basic lighting)
+    int ambientLoc = GetShaderLocation(lightShader, "ambient");
+    float ambientColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    SetShaderValue(lightShader, ambientLoc, ambientColor, SHADER_UNIFORM_VEC4);
 }
 
 Terrain::~Terrain()

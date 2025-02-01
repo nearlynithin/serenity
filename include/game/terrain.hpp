@@ -21,6 +21,7 @@ class Terrain
     Model &getTerrain();
     void DrawTerrain();
     void setTexture();
+    void setShader();
 };
 
 #endif
