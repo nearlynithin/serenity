@@ -32,6 +32,7 @@ set(SOURCES
     src/main.cpp
     src/terrain.cpp
     src/perlin.cpp
+    src/lights.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
