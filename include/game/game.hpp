@@ -51,7 +51,7 @@ class Game
     Matrix lightViewProj;
     RenderTexture2D shadowMap;
     ResourceManager resourceManager;
-    std::vector<std::unique_ptr<Terrain>> terrains;
+
 };
 
 #endif

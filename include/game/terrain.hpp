@@ -2,6 +2,8 @@
 #define TERRAIN_H
 
 #include "raylib.h"
+#include <memory>
+#include <vector>
 
 class Terrain
 {
@@ -22,6 +24,16 @@ class Terrain
     void DrawTerrain();
     void setTexture();
     void setShader();
+};
+
+class TerrainManager
+{
+  private:
+    static std::vector<std::unique_ptr<Terrain>> terrains;
+
+  public:
+    static void LoadTerrains();
+    static void DrawTerrains();
 };
 
 #endif
