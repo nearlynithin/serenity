@@ -52,13 +52,8 @@ void Terrain::setTexture()
 
 void Terrain::setShader()
 {
-    Shader lightShader = ResourceManager::getInstance().getShader("terrainLightShader");
-    terrain.materials[0].shader = lightShader;
-    lightShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(lightShader, "viewPos");
-    // Ambient light level (some basic lighting)
-    int ambientLoc = GetShaderLocation(lightShader, "ambient");
-    float ambientColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    SetShaderValue(lightShader, ambientLoc, ambientColor, SHADER_UNIFORM_VEC4);
+    Shader shadow_shader = ResourceManager::getInstance().getShader("shadowShader");
+    terrain.materials[0].shader = shadow_shader;
 }
 
 Terrain::~Terrain()

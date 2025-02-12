@@ -2,9 +2,13 @@
 #define RESOURCE_MANAGER_H
 
 #include "raylib.h"
+#include "rlgl.h"
 #include <iostream>
 #include <string>
 #include <unordered_map>
+
+// Some macros related to shaders
+#define SHADOWMAP_RESOLUTION 512
 
 class ResourceManager
 {
@@ -39,6 +43,41 @@ class ResourceManager
         return it->second;
     }
 
+    RenderTexture2D LoadShadowmapRenderTexture(int width, int height)
+    {
+        RenderTexture2D target = {0};
+
+        target.id = rlLoadFramebuffer(); // Load an empty framebuffer
+        target.texture.width = width;
+        target.texture.height = height;
+
+        if (target.id > 0)
+        {
+            rlEnableFramebuffer(target.id);
+
+            // Create depth texture
+            // We don't need a color texture for the shadowmap
+            target.depth.id = rlLoadTextureDepth(width, height, false);
+            target.depth.width = width;
+            target.depth.height = height;
+            target.depth.format = 19; // DEPTH_COMPONENT_24BIT?
+            target.depth.mipmaps = 1;
+
+            // Attach depth texture to FBO
+            rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
+
+            // Check if fbo is complete with attachments (valid)
+            if (rlFramebufferComplete(target.id))
+                std::cout << "FBO: [ID " << target.id << "] Framebuffer object created successfully\n";
+
+            rlDisableFramebuffer();
+        }
+        else
+            std::cerr << "FBO: Framebuffer object can not be created\n";
+
+        return target;
+    }
+
     // Shader Manager
     void Loadshader(const std::string &shaderName, const std::string &vertexShaderPath,
                     const std::string &fragmentShaderPath)
@@ -56,7 +95,7 @@ class ResourceManager
         auto it = shaders.find(name);
         if (it == shaders.end())
         {
-            std::cerr << "Shader not found : " << name << "\n";
+            std::cout << "Shader not found : " << name << "\n";
         }
         return it->second;
     }
