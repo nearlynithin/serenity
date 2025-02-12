@@ -27,6 +27,7 @@ class Game
     void LoadAllShaders();
 
     void SetLights();
+    void SetShaders();
     void UpdateShaders();
 
     float time;
@@ -40,6 +41,15 @@ class Game
     float z = 0;
 
     Camera camera;
+    Camera3D lightCam;
+    Vector3 lightDir;
+    int lightDirLoc;
+    int lightVPLoc;
+    int shadowMapLoc;
+    Matrix lightView;
+    Matrix lightProj;
+    Matrix lightViewProj;
+    RenderTexture2D shadowMap;
     ResourceManager resourceManager;
     std::vector<std::unique_ptr<Terrain>> terrains;
 };
