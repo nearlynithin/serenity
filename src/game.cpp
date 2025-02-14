@@ -162,7 +162,7 @@ void Game::ProcessInput()
 
 void Game::UpdateGame()
 {
-    UpdateCamera(&camera, CAMERA_FIRST_PERSON);
+    UpdateCamera(&camera, CAMERA_THIRD_PERSON);
     UpdateShaders();
 }
 
@@ -171,7 +171,7 @@ void Game::GenerateOutput()
     time += GetFrameTime();
 
     BeginDrawing();
-    Color backg = ColorFromNormalized(Vector4{0.1, 0.1, 0.1, 1.0});
+    Color backg = ColorFromNormalized(Vector4{0.8, 1.0, 0.8, 1.0});
     ClearBackground(backg);
 
     const int SHADOW_MAP_SLOT = 1;

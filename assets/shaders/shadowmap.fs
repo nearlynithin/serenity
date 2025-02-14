@@ -25,7 +25,7 @@ uniform int shadowMapResolution;
 
 // Fog parameters
 uniform float fogDensity;
-const vec4 fogColor = vec4(0.1, 0.1, 0.1, 1.0);
+const vec4 fogColor = vec4(0.8, 1.0, 0.8, 1.0);
 
 void main()
 {
@@ -85,7 +85,7 @@ void main()
     
     // Fog calculation
     float dist = length(viewPos - fragPosition);
-    dist *= 0.2;
+    dist *= 0.01;
     float fogFactor = 1.0/exp((dist*fogDensity)*(dist*fogDensity));
     fogFactor = clamp(fogFactor, 0.0, 1.0);
     
