@@ -9,6 +9,7 @@
 
 // Some macros related to shaders
 #define SHADOWMAP_RESOLUTION 512
+#define SHADOW_MAP_SLOT 1
 
 class ResourceManager
 {
@@ -123,6 +124,18 @@ class ResourceManager
             std::cout << "Shaders unloaded\n";
         }
     }
+};
+
+class ResourceLoader
+{
+  public:
+    static RenderTexture2D &getShadowMap()
+    {
+        static RenderTexture2D shadowMap;
+        return shadowMap;
+    }
+    static void LoadAllShaders();
+    static void LoadAllTextures();
 };
 
 #endif
