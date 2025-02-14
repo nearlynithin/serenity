@@ -110,10 +110,11 @@ void Game::SetShaders()
     lightDirLoc = GetShaderLocation(shadow_shader, "lightDir");
     lightVPLoc = GetShaderLocation(shadow_shader, "lightVP");
     shadowMapLoc = GetShaderLocation(shadow_shader, "shadowMap");
-
+    fogDensityLoc = GetShaderLocation(shadow_shader, "fogDensity");
     int shadowMapResolution = SHADOWMAP_RESOLUTION;
     SetShaderValue(shadow_shader, GetShaderLocation(shadow_shader, "shadowMapResolution"), &shadowMapResolution,
                    SHADER_UNIFORM_INT);
+    fogDensity = 0.15f;
 
     lightCam = {0};
     lightCam.position = Vector3Add(lightDir, {50.0f, 10.0f, 50.0f});
@@ -128,6 +129,7 @@ void Game::UpdateShaders()
     Shader shadow_shader = ResourceManager::getInstance().getShader("shadowShader");
     Vector3 cameraPos = camera.position;
     SetShaderValue(shadow_shader, shadow_shader.locs[SHADER_LOC_VECTOR_VIEW], &cameraPos, SHADER_UNIFORM_VEC3);
+    SetShaderValue(shadow_shader, fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
 
     float t = GetTime();
     lightDir = Vector3Normalize(Vector3{cosf(t) * 0.5f, -2.0f, sinf(t) * 0.5f});
@@ -160,7 +162,7 @@ void Game::ProcessInput()
 
 void Game::UpdateGame()
 {
-    UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+    UpdateCamera(&camera, CAMERA_FIRST_PERSON);
     UpdateShaders();
 }
 
@@ -169,7 +171,8 @@ void Game::GenerateOutput()
     time += GetFrameTime();
 
     BeginDrawing();
-    ClearBackground(DARKBROWN);
+    Color backg = ColorFromNormalized(Vector4{0.1, 0.1, 0.1, 1.0});
+    ClearBackground(backg);
 
     const int SHADOW_MAP_SLOT = 1;
     rlActiveTextureSlot(SHADOW_MAP_SLOT);

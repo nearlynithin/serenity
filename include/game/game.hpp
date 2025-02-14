@@ -49,9 +49,10 @@ class Game
     Matrix lightView;
     Matrix lightProj;
     Matrix lightViewProj;
+    float fogDensity;
+    float fogDensityLoc;
     RenderTexture2D shadowMap;
     ResourceManager resourceManager;
-
 };
 
 #endif
