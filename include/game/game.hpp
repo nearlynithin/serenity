@@ -3,10 +3,10 @@
 
 #include "game/lights.hpp"
 #include "game/resource.hpp"
+#include "game/scene.hpp"
 #include "game/terrain.hpp"
 #include "raylib.h"
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 class Game
@@ -23,13 +23,6 @@ class Game
     void UpdateGame();
     void GenerateOutput();
 
-    void LoadAllTextures();
-    void LoadAllShaders();
-
-    void SetLights();
-    void SetShaders();
-    void UpdateShaders();
-
     float time;
 
     const int screenWidth;
@@ -41,18 +34,6 @@ class Game
     float z = 0;
 
     Camera camera;
-    Camera3D lightCam;
-    Vector3 lightDir;
-    int lightDirLoc;
-    int lightVPLoc;
-    int shadowMapLoc;
-    Matrix lightView;
-    Matrix lightProj;
-    Matrix lightViewProj;
-    float fogDensity;
-    float fogDensityLoc;
-    RenderTexture2D shadowMap;
-    ResourceManager resourceManager;
 };
 
 #endif
