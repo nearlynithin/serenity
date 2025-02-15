@@ -5,6 +5,13 @@
 #include <memory>
 #include <vector>
 
+typedef struct
+{
+    float x;
+    float y;
+    float z;
+} position;
+
 class Terrain
 {
   private:
@@ -32,8 +39,10 @@ class TerrainManager
     static std::vector<std::unique_ptr<Terrain>> terrains;
 
   public:
+    static std::vector<position> grassPositions;
     static void LoadTerrains();
     static void DrawTerrains();
+    static Mesh *getTerrainVertices(int index);
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include <string.h>
 
 std::vector<std::unique_ptr<Terrain>> TerrainManager::terrains;
+std::vector<position> TerrainManager::grassPositions;
 
 Terrain::Terrain(float width, float length, float offsetx, float offsety)
   : heightMultiplier(70.0f),
@@ -23,7 +24,20 @@ Terrain::Terrain(float width, float length, float offsetx, float offsety)
         float scaledX = (vertexData[i] + 1000.0f) * noiseScale;
         float scaledZ = (vertexData[i + 2] + 1000.0f) * noiseScale;
         vertexData[i + 1] = perlin(scaledX + offsetx, scaledZ + offsety, 1.0f) * heightMultiplier;
+
+        float slopeThreshold = 0.3f; // Adjust based on how steep is too steep
+        if (i > 3)
+        { // Ensure we have a previous point to compare slope
+            float heightDiff = fabs(vertexData[i + 1] - vertexData[i - 2]); // Y difference
+            if (heightDiff < slopeThreshold)
+                TerrainManager::grassPositions.push_back({
+                    vertexData[i],     // X
+                    vertexData[i + 1], // Y (terrain height)
+                    vertexData[i + 2]  // Z
+                });
+        }
     }
+
     UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
 
     setTexture();
@@ -92,4 +106,9 @@ void TerrainManager::DrawTerrains()
     DrawModel(terrains[6]->getTerrain(), Vector3{1000.0f, 0.0f, 0.0f}, 1, DARKBROWN);    // (2,0)
     DrawModel(terrains[7]->getTerrain(), Vector3{1000.0f, 0.0f, 500.0f}, 1, DARKBROWN);  // (2,1)
     DrawModel(terrains[8]->getTerrain(), Vector3{1000.0f, 0.0f, 1000.0f}, 1, DARKBROWN); // (2,2)
+}
+
+Mesh *TerrainManager::getTerrainVertices(int index)
+{
+    return &terrains[index]->getTerrain().meshes[0];
 }
