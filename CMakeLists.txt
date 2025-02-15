@@ -35,6 +35,7 @@ set(SOURCES
     src/lights.cpp
     src/resource.cpp
     src/scene.cpp
+    src/grass.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

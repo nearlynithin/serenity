@@ -87,5 +87,5 @@ void Scene::DrawScene()
     TerrainManager::DrawTerrains();
     DrawSphere(lightCam.position, 1.0f, RED);
     EndShaderMode();
-    DrawCapsule(Vector3{20.0f, 0.0f, 20.0f}, Vector3{20.0f, 5.0f, 20.0f}, 2, 50, 3, RED);
+    // DrawCapsule(Vector3{20.0f, 0.0f, 20.0f}, Vector3{20.0f, 5.0f, 20.0f}, 2, 50, 3, RED);
 }

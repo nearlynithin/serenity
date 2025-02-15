@@ -1,4 +1,5 @@
 #include "game/game.hpp"
+#include "game/grass.hpp"
 #include "game/lights.hpp"
 #include "game/resource.hpp"
 #include "game/scene.hpp"
@@ -27,6 +28,7 @@ bool Game::Initialize()
     Scene::getInstance().SetShaders();
     TerrainManager::LoadTerrains();
     Scene::getInstance().SetLights();
+    Grass::InitGrass();
 
     // Setup camera
     camera = {
@@ -92,6 +94,9 @@ void Game::GenerateOutput()
 
     BeginMode3D(camera);
     Scene::getInstance().DrawScene();
+    rlDisableBackfaceCulling();
+    Grass::DrawGrass();
+    rlEnableBackfaceCulling();
     EndMode3D();
 
     // DrawTextureRec(shadowMap.depth, {0, 0, (float)shadowMap.depth.width, -(float)shadowMap.depth.height}, {10,

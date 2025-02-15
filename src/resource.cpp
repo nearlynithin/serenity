@@ -20,4 +20,5 @@ void ResourceLoader::LoadAllShaders()
     auto &resourceManager = ResourceManager::getInstance();
     // resourceManager.Loadshader("terrainLightShader", "assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
     resourceManager.Loadshader("shadowShader", "assets/shaders/shadowmap.vs", "assets/shaders/shadowmap.fs");
+    resourceManager.Loadshader("grassShader", "assets/shaders/lighting_instancing.vs", "assets/shaders/lighting.fs");
 }
