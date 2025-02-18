@@ -78,6 +78,21 @@ void Game::ProcessInput()
 
 void Game::UpdateGame()
 {
+    // UpdateCameraPro(&camera,
+    //                 (Vector3){
+    //                     (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) * 1.0f - // Move forward-backward
+    //                         (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) * 1.0f,
+    //                     (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) * 1.0f - // Move right-left
+    //                         (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) * 1.0f,
+    //                     0.0f // Move up-down
+    //                 },
+    //                 (Vector3){
+    //                     // Edit delta X for faster sideways movement
+    //                     GetMouseDelta().x * 0.1f,  // Rotation: yaw
+    //                     GetMouseDelta().y * 0.08f, // Rotation: pitch
+    //                     0.0f                       // Rotation: roll
+    //                 },
+    //                 0.0f); // Move to target (zoom)
     UpdateCamera(&camera, CAMERA_THIRD_PERSON);
     Scene::getInstance().UpdateShaders(&camera);
 }
@@ -94,10 +109,9 @@ void Game::GenerateOutput()
 
     BeginMode3D(camera);
     Scene::getInstance().DrawScene();
-    rlDisableBackfaceCulling();
-    Grass::DrawGrass();
-    rlEnableBackfaceCulling();
     EndMode3D();
+
+    DrawFPS(20, 20);
 
     // DrawTextureRec(shadowMap.depth, {0, 0, (float)shadowMap.depth.width, -(float)shadowMap.depth.height}, {10,
     // 10},WHITE);
