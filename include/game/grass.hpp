@@ -1,12 +1,12 @@
 #ifndef GRASS_H
 #define GRASS_H
 
-#define MAX_INSTANCES 12000
+#define MAX_INSTANCES 50000
 
 #include "raylib.h"
 #include "raymath.h"
-#include <vector>
 #include "terrain.hpp"
+#include <vector>
 
 class Grass
 {
@@ -15,7 +15,7 @@ class Grass
     static Model grass;
     static Matrix *transforms;
     static Material matInstances;
-    static int count;
+    static long count;
 
   public:
     static void InitGrass();

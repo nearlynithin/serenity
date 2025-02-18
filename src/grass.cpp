@@ -7,6 +7,7 @@
 Model Grass::grass = {0};
 Matrix *Grass::transforms = nullptr;
 Material Grass::matInstances = {0};
+long Grass::count = -1;
 
 void Grass::InitGrass()
 {
@@ -20,7 +21,7 @@ void Grass::InitGrass()
         Vector3 axis = {0.0f, 1.0f, 0.0f}; // Fixed, rotating around Y-axis only
         float angle = (float)GetRandomValue(0, 360) * DEG2RAD;
         Matrix rotation = MatrixRotate(axis, angle);
-        Matrix scaled = MatrixMultiply(MatrixScale(10, 10, 10), rotation);
+        Matrix scaled = MatrixMultiply(MatrixScale(40, GetRandomValue(10, 40), 40), rotation);
         transforms[i] = MatrixMultiply(scaled, translation);
     }
 
@@ -35,16 +36,44 @@ void Grass::InitGrass()
 
     matInstances = grass.materials[0];
     matInstances.shader = shader;
-    // matInstances.maps[MATERIAL_MAP_DIFFUSE].color = RED;
-    // assign the instancing shader here
 }
 
 position Grass::getGrassPosition()
 {
-    float x = GetRandomValue(-50, 50);
-    float z = GetRandomValue(-50, 50);
-    float y = perlin(x, z, 1.0f) * 70.0f;
-    return {x, y, z};
+    count++;
+
+    // Return original terrain points for the first 10200 positions
+    if (count <= 10200)
+    {
+        return TerrainManager::grassPositions[count];
+    }
+
+    // Use points that are further apart to prevent overlapping
+    const int spacing = 20; // Adjust this value based on your grass blade size
+    int baseIndex = (count % (10200 - spacing * 2));
+
+    // Get three points with sufficient spacing between them
+    position p1 = TerrainManager::grassPositions[baseIndex];
+    position p2 = TerrainManager::grassPositions[baseIndex + spacing];
+    position p3 = TerrainManager::grassPositions[baseIndex + spacing * 2];
+
+    // Generate barycentric coordinates
+    float u = GetRandomValue(0.0f, 1.0f);
+    float v = GetRandomValue(0.0f, 1.0f - u);
+    float w = 1.0f - u - v;
+
+    // Interpolate using barycentric coordinates
+    position result;
+    result.x = u * p1.x + v * p2.x + w * p3.x;
+    result.y = u * p1.y + v * p2.y + w * p3.y;
+    result.z = u * p1.z + v * p2.z + w * p3.z;
+
+    // Add proportional jitter based on the spacing
+    float jitter = spacing * 0.1f; // Jitter is now proportional to spacing
+    result.x += GetRandomValue(-jitter, jitter);
+    result.z += GetRandomValue(-jitter, jitter);
+
+    return result;
 }
 
 void Grass::DrawGrass()
