@@ -9,7 +9,7 @@ std::vector<std::unique_ptr<Terrain>> TerrainManager::terrains;
 std::vector<position> TerrainManager::grassPositions;
 
 Terrain::Terrain(float width, float length, float offsetx, float offsety)
-  : heightMultiplier(70.0f),
+  : heightMultiplier(40.0f),
     noiseScale(0.009f),
     resX(100),
     resY(100)
@@ -25,18 +25,16 @@ Terrain::Terrain(float width, float length, float offsetx, float offsety)
         float scaledZ = (vertexData[i + 2] + 1000.0f) * noiseScale;
         vertexData[i + 1] = perlin(scaledX + offsetx, scaledZ + offsety, 1.0f) * heightMultiplier;
 
-        float slopeThreshold = 0.3f; // Adjust based on how steep is too steep
         if (i > 3)
-        { // Ensure we have a previous point to compare slope
-            float heightDiff = fabs(vertexData[i + 1] - vertexData[i - 2]); // Y difference
-            if (heightDiff < slopeThreshold)
-                TerrainManager::grassPositions.push_back({
-                    vertexData[i],     // X
-                    vertexData[i + 1], // Y (terrain height)
-                    vertexData[i + 2]  // Z
-                });
+        {
+            TerrainManager::grassPositions.push_back({
+                vertexData[i],     // X
+                vertexData[i + 1], // Y (terrain height)
+                vertexData[i + 2]  // Z
+            });
         }
     }
+    std::cout << "\nTotal Grass position points : " << TerrainManager::grassPositions.size() << "\n";
 
     UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
 
