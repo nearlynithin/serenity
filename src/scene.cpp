@@ -1,4 +1,5 @@
 #include "game/scene.hpp"
+#include "game/grass.hpp"
 #include "game/resource.hpp"
 #include "game/terrain.hpp"
 #include "raymath.h"
@@ -7,23 +8,39 @@ void Scene::SetLights()
 {
     lightDir = Vector3{0.5f, 0.0f, -0.5f};
     float lightCol[4] = {0.2f, 0.2f, 0.0f, 0.1f};
-    Shader shadowShader = ResourceManager::getInstance().getShader("shadowShader");
-    SetShaderValue(shadowShader, lightDirLoc, &lightDir, SHADER_UNIFORM_VEC3);
-    SetShaderValue(shadowShader, GetShaderLocation(shadowShader, "lightColor"), &lightCol, SHADER_UNIFORM_VEC4);
-
     float ambient[4] = {0.7f, 0.7f, 0.0f, 0.1f};
+
+    // Set values for both shaders
+    Shader shadowShader = ResourceManager::getInstance().getShader("shadowShader");
+    Shader grassShader = ResourceManager::getInstance().getShader("grassShader");
+
+    // Set light direction
+    SetShaderValue(shadowShader, lightDirLoc, &lightDir, SHADER_UNIFORM_VEC3);
+    SetShaderValue(grassShader, GetShaderLocation(grassShader, "lightDir"), &lightDir, SHADER_UNIFORM_VEC3);
+
+    // Set light color
+    SetShaderValue(shadowShader, GetShaderLocation(shadowShader, "lightColor"), &lightCol, SHADER_UNIFORM_VEC4);
+    SetShaderValue(grassShader, GetShaderLocation(grassShader, "lightColor"), &lightCol, SHADER_UNIFORM_VEC4);
+
+    // Set ambient light
     SetShaderValue(shadowShader, GetShaderLocation(shadowShader, "ambient"), ambient, SHADER_UNIFORM_VEC4);
+    SetShaderValue(grassShader, GetShaderLocation(grassShader, "ambient"), ambient, SHADER_UNIFORM_VEC4);
 }
 
 void Scene::SetShaders()
 {
     Shader shadow_shader = ResourceManager::getInstance().getShader("shadowShader");
+    Shader grass_shader = ResourceManager::getInstance().getShader("grassShader");
+
+    // Shadow shader locations
     shadow_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shadow_shader, "viewPos");
+    grass_shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(grass_shader, "viewPos");
 
     lightDirLoc = GetShaderLocation(shadow_shader, "lightDir");
     lightVPLoc = GetShaderLocation(shadow_shader, "lightVP");
     shadowMapLoc = GetShaderLocation(shadow_shader, "shadowMap");
     fogDensityLoc = GetShaderLocation(shadow_shader, "fogDensity");
+
     int shadowMapResolution = SHADOWMAP_RESOLUTION;
     SetShaderValue(shadow_shader, GetShaderLocation(shadow_shader, "shadowMapResolution"), &shadowMapResolution,
                    SHADER_UNIFORM_INT);
@@ -40,11 +57,15 @@ void Scene::SetShaders()
 void Scene::UpdateShaders(Camera3D *camera)
 {
     Shader shadow_shader = ResourceManager::getInstance().getShader("shadowShader");
+    Shader grass_shader = ResourceManager::getInstance().getShader("grassShader");
     RenderTexture2D shadowMap = ResourceLoader::getShadowMap();
     Vector3 cameraPos = camera->position;
 
     SetShaderValue(shadow_shader, shadow_shader.locs[SHADER_LOC_VECTOR_VIEW], &cameraPos, SHADER_UNIFORM_VEC3);
+    SetShaderValue(grass_shader, grass_shader.locs[SHADER_LOC_VECTOR_VIEW], &cameraPos, SHADER_UNIFORM_VEC3);
+
     SetShaderValue(shadow_shader, fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(grass_shader, GetShaderLocation(grass_shader, "fogDensity"), &fogDensity, SHADER_UNIFORM_FLOAT);
 
     float t = GetTime();
     lightDir = Vector3Normalize(Vector3{cosf(t) * 0.5f, -2.0f, sinf(t) * 0.5f});
@@ -52,6 +73,7 @@ void Scene::UpdateShaders(Camera3D *camera)
     lightCam.target = Vector3{50.0f, 0.0f, 50.0f};
 
     SetShaderValue(shadow_shader, lightDirLoc, &lightDir, SHADER_UNIFORM_VEC3);
+    SetShaderValue(grass_shader, GetShaderLocation(grass_shader, "lightDir"), &lightDir, SHADER_UNIFORM_VEC3);
 
     BeginTextureMode(shadowMap);
     ClearBackground(WHITE);
@@ -61,14 +83,19 @@ void Scene::UpdateShaders(Camera3D *camera)
     lightProj = rlGetMatrixProjection();
 
     TerrainManager::DrawTerrains();
-    // DrawCube(Vector3{50.0f, 5.0f, 50.0f}, 15, 15, 15, BROWN);
-    DrawCapsule(Vector3{20.0f, 0.0f, 20.0f}, Vector3{20.0f, 5.0f, 20.0f}, 2, 50, 3, RED);
+    Grass::DrawGrass();
 
     EndMode3D();
     EndTextureMode();
 
     lightViewProj = MatrixMultiply(lightView, lightProj);
+
     SetShaderValueMatrix(shadow_shader, lightVPLoc, lightViewProj);
+    SetShaderValueMatrix(grass_shader, GetShaderLocation(grass_shader, "lightVP"), lightViewProj);
+
+    SetShaderValueTexture(shadow_shader, shadowMapLoc, shadowMap.texture);
+    SetShaderValueTexture(grass_shader, GetShaderLocation(grass_shader, "shadowMap"), shadowMap.texture);
+
     rlEnableShader(shadow_shader.id);
 }
 
@@ -83,9 +110,14 @@ void Scene::ScenePrep()
 
 void Scene::DrawScene()
 {
+    // rlEnableWireMode();
     BeginShaderMode(ResourceManager::getInstance().getShader("shadowShader"));
     TerrainManager::DrawTerrains();
+    // rlDisableWireMode();
     DrawSphere(lightCam.position, 1.0f, RED);
+    rlDisableBackfaceCulling();
+    Grass::DrawGrass();
+    rlEnableBackfaceCulling();
     EndShaderMode();
     // DrawCapsule(Vector3{20.0f, 0.0f, 20.0f}, Vector3{20.0f, 5.0f, 20.0f}, 2, 50, 3, RED);
 }

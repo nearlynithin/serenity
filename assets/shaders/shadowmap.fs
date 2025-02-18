@@ -85,7 +85,7 @@ void main()
     
     // Fog calculation
     float dist = length(viewPos - fragPosition);
-    dist *= 0.01;
+    dist *= 0.02;
     float fogFactor = 1.0/exp((dist*fogDensity)*(dist*fogDensity));
     fogFactor = clamp(fogFactor, 0.0, 1.0);
     
