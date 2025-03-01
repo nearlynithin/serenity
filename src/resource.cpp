@@ -22,3 +22,9 @@ void ResourceLoader::LoadAllShaders()
     resourceManager.Loadshader("shadowShader", "assets/shaders/shadowmap.vs", "assets/shaders/shadowmap.fs");
     resourceManager.Loadshader("grassShader", "assets/shaders/lighting_instancing.vs", "assets/shaders/lighting.fs");
 }
+
+void ResourceLoader::LoadAllModels()
+{
+    auto &resourceManager = ResourceManager::getInstance();
+    resourceManager.Loadmodel("oiiaioooooiai", "assets/cat.glb");
+}

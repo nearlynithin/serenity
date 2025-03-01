@@ -4,6 +4,13 @@
 #include "game/terrain.hpp"
 #include "raymath.h"
 
+void Scene::SetModels()
+{
+    Model uia = ResourceManager::getInstance().getModel("oiiaioooooiai");
+    Shader shadowShader = ResourceManager::getInstance().getShader("shadowShader");
+    uia.materials[0].shader = shadowShader;
+}
+
 void Scene::SetLights()
 {
     lightDir = Vector3{0.5f, 0.0f, -0.5f};
@@ -83,6 +90,7 @@ void Scene::UpdateShaders(Camera3D *camera)
     lightProj = rlGetMatrixProjection();
 
     TerrainManager::DrawTerrains();
+    DrawModel(ResourceManager::getInstance().getModel("oiiaioooooiai"), Vector3{-20, 10, -20}, 0.2, WHITE);
     Grass::DrawGrass();
 
     EndMode3D();
@@ -118,6 +126,7 @@ void Scene::DrawScene()
     rlDisableBackfaceCulling();
     Grass::DrawGrass();
     rlEnableBackfaceCulling();
+    DrawModel(ResourceManager::getInstance().getModel("oiiaioooooiai"), Vector3{0, 7, -20}, 0.8, WHITE);
     EndShaderMode();
     // DrawCapsule(Vector3{20.0f, 0.0f, 20.0f}, Vector3{20.0f, 5.0f, 20.0f}, 2, 50, 3, RED);
 }

@@ -16,6 +16,7 @@ class ResourceManager
   private:
     std::unordered_map<std::string, Texture2D> textures;
     std::unordered_map<std::string, Shader> shaders;
+    std::unordered_map<std::string, Model> models;
 
   public:
     static ResourceManager &getInstance()
@@ -101,6 +102,26 @@ class ResourceManager
         return it->second;
     }
 
+    // Model Manager
+    void Loadmodel(const std::string &modelName, const std::string &filename)
+    {
+        models[modelName] = LoadModel(filename.c_str());
+        if (!IsModelReady(models[modelName]))
+        {
+            std::cerr << "Model not ready : " << modelName << "\n";
+        }
+    }
+
+    Model &getModel(const std::string &modelName)
+    {
+        auto it = models.find(modelName);
+        if (it == models.end())
+        {
+            std::cerr << "Model not found : " << modelName << "\n";
+        }
+        return it->second;
+    }
+
     // Manually unloading resources
     void UnloadAll()
     {
@@ -123,6 +144,16 @@ class ResourceManager
             shaders.clear();
             std::cout << "Shaders unloaded\n";
         }
+
+        if (!models.empty())
+        {
+            for (auto &model : models)
+            {
+                UnloadModel(model.second);
+            }
+            models.clear();
+            std::cout << "Models unloaded\n";
+        }
     }
 };
 
@@ -136,6 +167,7 @@ class ResourceLoader
     }
     static void LoadAllShaders();
     static void LoadAllTextures();
+    static void LoadAllModels();
 };
 
 #endif

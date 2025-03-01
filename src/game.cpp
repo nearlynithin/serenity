@@ -18,17 +18,19 @@ Game::Game()
 
 bool Game::Initialize()
 {
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_WINDOW_UNDECORATED);
     InitWindow(screenWidth, screenHeight, "Serenity");
     SetTargetFPS(60);
     DisableCursor();
 
     ResourceLoader::LoadAllTextures();
     ResourceLoader::LoadAllShaders();
+    ResourceLoader::LoadAllModels();
     Scene::getInstance().SetShaders();
     TerrainManager::LoadTerrains();
     Scene::getInstance().SetLights();
     Grass::InitGrass();
+    // Scene::getInstance().SetModels();
 
     // Setup camera
     camera = {

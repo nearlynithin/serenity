@@ -24,6 +24,7 @@ class Scene
         return instance;
     }
 
+    void SetModels();
     void SetLights();
     void SetShaders();
     void UpdateShaders(Camera3D *camera);
