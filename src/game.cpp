@@ -20,17 +20,14 @@ bool Game::Initialize()
 {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_WINDOW_UNDECORATED);
     InitWindow(screenWidth, screenHeight, "Serenity");
-    SetTargetFPS(60);
     DisableCursor();
 
     ResourceLoader::LoadAllTextures();
     ResourceLoader::LoadAllShaders();
     ResourceLoader::LoadAllModels();
-    Scene::getInstance().SetShaders();
     TerrainManager::LoadTerrains();
-    Scene::getInstance().SetLights();
-    Grass::InitGrass();
-    // Scene::getInstance().SetModels();
+    // Scene::getInstance().SetLights();
+    // Grass::InitGrass();
 
     // Setup camera
     camera = {
@@ -96,7 +93,6 @@ void Game::UpdateGame()
     //                 },
     //                 0.0f); // Move to target (zoom)
     UpdateCamera(&camera, CAMERA_THIRD_PERSON);
-    Scene::getInstance().UpdateShaders(&camera);
 }
 
 void Game::GenerateOutput()
@@ -106,8 +102,6 @@ void Game::GenerateOutput()
     BeginDrawing();
     Color backg = ColorFromNormalized(Vector4{0.8, 1.0, 0.8, 1.0});
     ClearBackground(backg);
-
-    Scene::getInstance().ScenePrep();
 
     BeginMode3D(camera);
     Scene::getInstance().DrawScene();

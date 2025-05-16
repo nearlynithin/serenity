@@ -21,8 +21,8 @@ void Grass::InitGrass()
         Vector3 axis = {0.0f, 1.0f, 0.0f}; // Fixed, rotating around Y-axis only
         float angle = (float)GetRandomValue(0, 360) * DEG2RAD;
         Matrix rotation = MatrixRotate(axis, angle);
-        Matrix scaled = MatrixMultiply(MatrixScale(40, GetRandomValue(10, 40), 40), rotation);
-        transforms[i] = MatrixMultiply(scaled, translation);
+        // Matrix scaled = MatrixMultiply(MatrixScale(40, 1, 40), rotation);
+        transforms[i] = translation;
     }
 
     Shader shader = ResourceManager::getInstance().getShader("grassShader");

@@ -4,56 +4,38 @@
 #include "raymath.h"
 #include <stdlib.h>
 #include <string.h>
+#define WIDTH 50
+#define HEIGHT 50
+#define RES_X 100
+#define RES_Y 100
+#define SCALE 100.0f
 
 std::vector<std::unique_ptr<Terrain>> TerrainManager::terrains;
 std::vector<position> TerrainManager::grassPositions;
 
-Terrain::Terrain(float width, float length, float offsetx, float offsety)
-  : heightMultiplier(40.0f),
-    noiseScale(0.009f),
-    resX(100),
-    resY(100)
+Terrain::Terrain(float offsetx, float offsety)
+  : heightMultiplier(25.0f),
+    noiseScale(10.0f),
+    resX(RES_X),
+    resY(RES_Y)
 {
-    mesh = GenMeshPlane(width, length, resX, resY);
+    mesh = GenMeshPlane(WIDTH, HEIGHT, resX, resY);
     vertexData = (float *)malloc(mesh.vertexCount * 3 * sizeof(float));
     memcpy(vertexData, mesh.vertices, mesh.vertexCount * 3 * sizeof(float));
     terrain = LoadModelFromMesh(mesh);
 
     for (int i = 0; i < mesh.vertexCount * 3; i += 3)
     {
-        float scaledX = (vertexData[i] + 1000.0f) * noiseScale;
-        float scaledZ = (vertexData[i + 2] + 1000.0f) * noiseScale;
-        vertexData[i + 1] = perlin(scaledX + offsetx, scaledZ + offsety, 1.0f) * heightMultiplier;
+        float scaledX = vertexData[i] * noiseScale;
+        float scaledZ = vertexData[i + 2] * noiseScale;
 
-        if (i > 3)
-        {
-            TerrainManager::grassPositions.push_back({
-                vertexData[i],     // X
-                vertexData[i + 1], // Y (terrain height)
-                vertexData[i + 2]  // Z
-            });
-        }
+        float height = terrainNoise(scaledX + offsetx * 10, scaledZ + offsety * 10, 100.0f);
+        vertexData[i + 1] = height * heightMultiplier;
     }
-    std::cout << "\nTotal Grass position points : " << TerrainManager::grassPositions.size() << "\n";
-
     UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
-
     setTexture();
     setShader();
 }
-
-void Terrain::updateTerrain(float time, float offsetx, float offsety)
-{
-    for (int i = 0; i < mesh.vertexCount * 3; i += 3)
-    {
-        // Add an offset to center the noise pattern
-        float scaledX = (vertexData[i] + 1000.0f) * noiseScale;
-        float scaledZ = (vertexData[i + 2] + 1000.0f) * noiseScale;
-        vertexData[i + 1] = perlin(scaledX + offsetx, scaledZ + offsety + time, 1.0f) * heightMultiplier;
-    }
-    UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
-}
-
 Model &Terrain::getTerrain()
 {
     return terrain;
@@ -61,14 +43,16 @@ Model &Terrain::getTerrain()
 
 void Terrain::setTexture()
 {
-    terrain.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture =
-        ResourceManager::getInstance().GetTexture("terrainTexture");
+    Texture2D tex = ResourceManager::getInstance().GetTexture("terrainTexture");
+    terrain.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = tex;
+    GenTextureMipmaps(&tex);
+    SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
 }
 
 void Terrain::setShader()
 {
-    Shader shadow_shader = ResourceManager::getInstance().getShader("shadowShader");
-    terrain.materials[0].shader = shadow_shader;
+    // Shader shadow_shader = ResourceManager::getInstance().getShader("shadowShader");
+    // terrain.materials[0].shader = shadow_shader;
 }
 
 Terrain::~Terrain()
@@ -77,33 +61,46 @@ Terrain::~Terrain()
     // Terrain objects are automatically destroyed because of unique_ptr
 }
 
+void Terrain::updateTerrain(float time, float offsetx, float offsety)
+{
+    for (int i = 0; i < mesh.vertexCount * 3; i += 3)
+    {
+        float scaledX = vertexData[i] * noiseScale;
+        float scaledZ = vertexData[i + 2] * noiseScale;
+
+        float height = terrainNoise(scaledX + offsetx, scaledZ + offsety + time, SCALE);
+        vertexData[i + 1] = height * heightMultiplier;
+    }
+    UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
+}
+
 // Terrain manager
 void TerrainManager::LoadTerrains()
 {
-    terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 0.0f, 0.0f)); // RED  (0,0)
-    terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 0.0f, 4.5f)); // WHITE (0,1)
-    terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 0.0f, 9.0f)); // BLUE  (0,2)
-
-    terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 4.5f, 0.0f)); // GREEN (1,0)
-    terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 4.5f, 4.5f)); // YELLOW(1,1)
-    terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 4.5f, 9.0f)); // ORANGE(1,2)
-
-    terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 9.0f, 0.0f)); // CYAN  (2,0)
-    terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 9.0f, 4.5f)); // PURPLE(2,1)
-    terrains.push_back(std::make_unique<Terrain>(500.0f, 500.0f, 9.0f, 9.0f)); // MAGENTA(2,2)
+    terrains.push_back(std::make_unique<Terrain>(0.0f, 0.0f));
+    terrains.push_back(std::make_unique<Terrain>(0.0f, 50.0f));
+    terrains.push_back(std::make_unique<Terrain>(0.0f, 100.0f));
+    terrains.push_back(std::make_unique<Terrain>(50.0f, 0.0f));
+    terrains.push_back(std::make_unique<Terrain>(50.0f, 50.0f));
+    terrains.push_back(std::make_unique<Terrain>(50.0f, 100.0f));
+    terrains.push_back(std::make_unique<Terrain>(100.0f, 0.0f));
+    terrains.push_back(std::make_unique<Terrain>(100.0f, 50.0f));
+    terrains.push_back(std::make_unique<Terrain>(100.0f, 100.0f));
 }
 
 void TerrainManager::DrawTerrains()
 {
-    DrawModel(terrains[0]->getTerrain(), Vector3Zero(), 1, DARKBROWN);                   // (0,0)
-    DrawModel(terrains[1]->getTerrain(), Vector3{0.0f, 0.0f, 500.0f}, 1, DARKBROWN);     // (0,1)
-    DrawModel(terrains[2]->getTerrain(), Vector3{0.0f, 0.0f, 1000.0f}, 1, DARKBROWN);    // (0,)
-    DrawModel(terrains[3]->getTerrain(), Vector3{500.0f, 0.0f, 0.0f}, 1, DARKBROWN);     // (1,0)
-    DrawModel(terrains[4]->getTerrain(), Vector3{500.0f, 0.0f, 500.0f}, 1, DARKBROWN);   // (1,1)
-    DrawModel(terrains[5]->getTerrain(), Vector3{500.0f, 0.0f, 1000.0f}, 1, DARKBROWN);  // (1,)
-    DrawModel(terrains[6]->getTerrain(), Vector3{1000.0f, 0.0f, 0.0f}, 1, DARKBROWN);    // (2,0)
-    DrawModel(terrains[7]->getTerrain(), Vector3{1000.0f, 0.0f, 500.0f}, 1, DARKBROWN);  // (2,1)
-    DrawModel(terrains[8]->getTerrain(), Vector3{1000.0f, 0.0f, 1000.0f}, 1, DARKBROWN); // (2,2)
+    // rlEnableWireMode();
+    DrawModel(terrains[0]->getTerrain(), Vector3Zero(), 1, WHITE);
+    DrawModel(terrains[1]->getTerrain(), Vector3{0.0f, 0.0f, 50.0f}, 1, WHITE);
+    DrawModel(terrains[2]->getTerrain(), Vector3{0.0f, 0.0f, 100.0f}, 1, WHITE);
+    DrawModel(terrains[3]->getTerrain(), Vector3{50.0f, 0.0f, 0.0f}, 1, WHITE);
+    DrawModel(terrains[4]->getTerrain(), Vector3{50.0f, 0.0f, 50.0f}, 1, WHITE);
+    DrawModel(terrains[5]->getTerrain(), Vector3{50.0f, 0.0f, 100.0f}, 1, WHITE);
+    DrawModel(terrains[6]->getTerrain(), Vector3{100.0f, 0.0f, 0.0f}, 1, WHITE);
+    DrawModel(terrains[7]->getTerrain(), Vector3{100.0f, 0.0f, 50.0f}, 1, WHITE);
+    DrawModel(terrains[8]->getTerrain(), Vector3{100.0f, 0.0f, 100.0f}, 1, WHITE);
+    // rlDisableWireMode();
 }
 
 Mesh *TerrainManager::getTerrainVertices(int index)

@@ -1,33 +1,54 @@
 #include "perlin.hpp"
 
-int height = 100;
-int width = 100;
+#define UNITS 1
+#define WIDTH 200
+#define HEIGHT 200
 
 Vector2 randomGradient(int ix, int iy)
 {
-    // Use consistent hashing for reproducibility
-    unsigned int hash = ix * 1619 + iy * 31337;
-    hash = hash * hash * hash * 60493;
-    hash = (hash >> 13) ^ hash;
+    const unsigned w = 8 * sizeof(unsigned);
+    const unsigned s = w / 2;
+    unsigned a = ix, b = iy;
 
-    float angle = (hash & 0xFFFFFFF) / static_cast<float>(0xFFFFFFF) * 2.0f * PI;
+    a *= 3284157443;
+    b ^= a << s | a >> (w - s);
+    b *= 1911520717;
+    a ^= b << s | b >> (w - s);
+    a *= 2048419325;
+
+    // Convert to angle in [0, 2*PI]
+    float angle = a * (PI / ~(~0u >> 1));
     return Vector2{cosf(angle), sinf(angle)};
 }
 
-float noise(float x, float y)
+float dotGridGradient(int ix, int iy, float x, float y)
 {
-    // Scale input coordinates to match the desired tile size
-    x = fmodf(x, static_cast<float>(width));
-    y = fmodf(y, static_cast<float>(height));
-    if (x < 0)
-        x += width;
-    if (y < 0)
-        y += height;
+    Vector2 gradient = randomGradient(ix, iy);
 
+    float dx = x - static_cast<float>(ix);
+    float dy = y - static_cast<float>(iy);
+
+    return (dx * gradient.x + dy * gradient.y);
+}
+
+float smoothStep(float t)
+{
+    return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
+}
+
+float interpolate(float a0, float a1, float w)
+{
+    float weight = smoothStep(w);
+
+    return a0 + weight * (a1 - a0);
+}
+
+float singlePerlin(float x, float y)
+{
     int x0 = static_cast<int>(floorf(x));
     int y0 = static_cast<int>(floorf(y));
-    int x1 = (x0 + 1) % width;
-    int y1 = (y0 + 1) % height;
+    int x1 = x0 + 1;
+    int y1 = y0 + 1;
 
     float sx = x - static_cast<float>(x0);
     float sy = y - static_cast<float>(y0);
@@ -43,39 +64,50 @@ float noise(float x, float y)
     return interpolate(ix0, ix1, sy);
 }
 
-// Computes the dot product of the distance and gradient vectors
-float dotGridGradient(int ix, int iy, float x, float y)
+float perlin(float x, float y, float scale, int octaves, float persistence, float lacunarity)
 {
-    // Wrap coordinates
-    ix = ix % width;
-    iy = iy % height;
-    if (ix < 0)
-        ix += width;
-    if (iy < 0)
-        iy += height;
+    float total = 0.0f;
+    float frequency = 1.0f;
+    float amplitude = 1.0f;
+    float maxValue = 0.0f;
 
-    Vector2 gradient = randomGradient(ix, iy);
-    float dx = x - static_cast<float>(ix);
-    float dy = y - static_cast<float>(iy);
+    for (int i = 0; i < octaves; i++)
+    {
+        float nx = x * frequency / scale;
+        float ny = y * frequency / scale;
 
-    return (dx * gradient.x + dy * gradient.y);
+        float noiseValue = singlePerlin(nx, ny);
+
+        // Post-process noise value for smoother mountains
+        // Apply subtle curve to create more rounded terrain features
+        if (i < 2)
+        { // Only apply to lower octaves (larger features)
+            // This smooths the large features while preserving some detail
+            noiseValue = (noiseValue > 0) ? powf(noiseValue, 1.2f) : -powf(-noiseValue, 1.2f);
+        }
+
+        total += noiseValue * amplitude;
+
+        maxValue += amplitude;
+
+        amplitude *= persistence;
+        frequency *= lacunarity;
+    }
+
+    float result = total / maxValue;
+
+    result = (result > 0) ? powf(result, 1.1f) : -powf(-result, 1.1f);
+
+    return result;
 }
 
-// Improved smoothstep function for better interpolation
-float smoothstep(float t)
+float terrainNoise(float x, float y, float scale)
 {
-    return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
-}
+    float mountains = perlin(x, y, scale * 2.0f, 2, 0.5f, 2.0f);
 
-float interpolate(float a0, float a1, float w)
-{
-    return a0 + smoothstep(w) * (a1 - a0);
-}
+    mountains = (mountains > 0) ? powf(mountains, 1.4f) : -powf(-mountains, 1.4f);
+    float hills = perlin(x + 100.0f, y + 100.0f, scale, 3, 0.4f, 2.0f) * 0.25f;
 
-float perlin(float worldX, float worldZ, float scale)
-{
-    // Convert world coordinates to noise coordinates
-    float noiseX = worldX * scale;
-    float noiseY = worldZ * scale;
-    return noise(noiseX, noiseY);
+    float details = perlin(x - 200.0f, y - 200.0f, scale * 0.5f, 2, 0.3f, 2.0f) * 0.1f;
+    return mountains + hills + details;
 }

@@ -24,13 +24,13 @@ class Terrain
     Model terrain;
 
   public:
-    Terrain(float width = 1000, float length = 1000, float offestx = 0.0f, float offesty = 0.0f);
+    Terrain(float offestx, float offesty);
     virtual ~Terrain();
     void updateTerrain(float time, float offestx, float offesty);
     Model &getTerrain();
     void DrawTerrain();
     void setTexture();
-    void setShader();
+    void setShader();g
 };
 
 class TerrainManager
@@ -41,7 +41,7 @@ class TerrainManager
   public:
     static std::vector<position> grassPositions;
     static void LoadTerrains();
-    static void DrawTerrains();
+    static void DrawTerrains();g
     static Mesh *getTerrainVertices(int index);
 };
 

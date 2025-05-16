@@ -4,7 +4,7 @@
 void ResourceLoader::LoadAllTextures()
 {
     auto &resourceManager = ResourceManager::getInstance();
-    resourceManager.LoadTex("terrainTexture", "assets/ground.png");
+    resourceManager.LoadTex("terrainTexture", "assets/aerial_rocks_04_diff_4k.png");
 
     RenderTexture2D shadowMap = ResourceLoader::getShadowMap();
 
