@@ -1,12 +1,14 @@
 #include "game/game.hpp"
 #include "game/grass.hpp"
 #include "game/lights.hpp"
+#include "game/player.hpp"
 #include "game/resource.hpp"
 #include "game/scene.hpp"
 #include "game/terrain.hpp"
 #include "raymath.h"
 #include "rlgl.h"
 #include <iostream>
+#include <raylib.h>
 
 Game::Game()
   : screenWidth(1280),
@@ -26,17 +28,8 @@ bool Game::Initialize()
     ResourceLoader::LoadAllShaders();
     ResourceLoader::LoadAllModels();
     TerrainManager::LoadTerrains();
-    // Scene::getInstance().SetLights();
-    // Grass::InitGrass();
 
-    // Setup camera
-    camera = {
-        .position = {10.0f, 10.0f, 10.0f},
-        .target = {0.0f, 0.0f, 0.0f},
-        .up = {0.0f, 1.0f, 0.0f},
-        .fovy = 45.0f,
-        .projection = CAMERA_PERSPECTIVE,
-    };
+    Player::InitPlayer();
 
     if (IsWindowReady())
     {
@@ -73,26 +66,13 @@ void Game::RunLoop()
 
 void Game::ProcessInput()
 {
+    Player::PlayerMoves();
 }
 
 void Game::UpdateGame()
 {
-    // UpdateCameraPro(&camera,
-    //                 (Vector3){
-    //                     (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) * 1.0f - // Move forward-backward
-    //                         (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) * 1.0f,
-    //                     (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) * 1.0f - // Move right-left
-    //                         (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) * 1.0f,
-    //                     0.0f // Move up-down
-    //                 },
-    //                 (Vector3){
-    //                     // Edit delta X for faster sideways movement
-    //                     GetMouseDelta().x * 0.1f,  // Rotation: yaw
-    //                     GetMouseDelta().y * 0.08f, // Rotation: pitch
-    //                     0.0f                       // Rotation: roll
-    //                 },
-    //                 0.0f); // Move to target (zoom)
-    UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+    Player::UpdateCamera();
+    TerrainManager::UpdateTerrains();
 }
 
 void Game::GenerateOutput()
@@ -103,14 +83,11 @@ void Game::GenerateOutput()
     Color backg = ColorFromNormalized(Vector4{0.8, 1.0, 0.8, 1.0});
     ClearBackground(backg);
 
-    BeginMode3D(camera);
+    BeginMode3D(Player::camera);
     Scene::getInstance().DrawScene();
     EndMode3D();
 
     DrawFPS(20, 20);
-
-    // DrawTextureRec(shadowMap.depth, {0, 0, (float)shadowMap.depth.width, -(float)shadowMap.depth.height}, {10,
-    // 10},WHITE);
 
     EndDrawing();
 }

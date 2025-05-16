@@ -1,23 +1,30 @@
 #include "game/terrain.hpp"
+#include "game/player.hpp"
 #include "game/resource.hpp"
 #include "perlin.hpp"
 #include "raymath.h"
+#include "utils.hpp"
 #include <stdlib.h>
 #include <string.h>
-#define WIDTH 50
-#define HEIGHT 50
+#include <unordered_set>
+#define WIDTH 50.0f
+#define HEIGHT 50.0f
 #define RES_X 100
 #define RES_Y 100
 #define SCALE 100.0f
 
-std::vector<std::unique_ptr<Terrain>> TerrainManager::terrains;
+// std::vector<std::unique_ptr<Terrain>> TerrainManager::terrains;
+std::unordered_map<Vector2, std::unique_ptr<Terrain>> TerrainManager::terrains;
 std::vector<position> TerrainManager::grassPositions;
+Vector2 TerrainManager::currentTerrain;
+std::unordered_set<Vector2> TerrainManager::cords;
 
 Terrain::Terrain(float offsetx, float offsety)
   : heightMultiplier(25.0f),
     noiseScale(10.0f),
     resX(RES_X),
-    resY(RES_Y)
+    resY(RES_Y),
+    position(Vector3{WIDTH / 2 + offsetx, 0, HEIGHT / 2 + offsety})
 {
     mesh = GenMeshPlane(WIDTH, HEIGHT, resX, resY);
     vertexData = (float *)malloc(mesh.vertexCount * 3 * sizeof(float));
@@ -39,6 +46,10 @@ Terrain::Terrain(float offsetx, float offsety)
 Model &Terrain::getTerrain()
 {
     return terrain;
+}
+Vector3 Terrain::getPosition()
+{
+    return position;
 }
 
 void Terrain::setTexture()
@@ -77,33 +88,76 @@ void Terrain::updateTerrain(float time, float offsetx, float offsety)
 // Terrain manager
 void TerrainManager::LoadTerrains()
 {
-    terrains.push_back(std::make_unique<Terrain>(0.0f, 0.0f));
-    terrains.push_back(std::make_unique<Terrain>(0.0f, 50.0f));
-    terrains.push_back(std::make_unique<Terrain>(0.0f, 100.0f));
-    terrains.push_back(std::make_unique<Terrain>(50.0f, 0.0f));
-    terrains.push_back(std::make_unique<Terrain>(50.0f, 50.0f));
-    terrains.push_back(std::make_unique<Terrain>(50.0f, 100.0f));
-    terrains.push_back(std::make_unique<Terrain>(100.0f, 0.0f));
-    terrains.push_back(std::make_unique<Terrain>(100.0f, 50.0f));
-    terrains.push_back(std::make_unique<Terrain>(100.0f, 100.0f));
+    terrains[Vector2{0, 0}] = std::make_unique<Terrain>(0.0f, 0.0f);
+    terrains[Vector2{0, 1}] = std::make_unique<Terrain>(0.0f, 50.0f);
+    terrains[Vector2{0, -1}] = std::make_unique<Terrain>(0.0f, -50.0f);
+    terrains[Vector2{-1, 0}] = std::make_unique<Terrain>(-50.0f, 0.0f);
+    terrains[Vector2{1, 0}] = std::make_unique<Terrain>(50.0f, 0.0f);
+    terrains[Vector2{-1, 1}] = std::make_unique<Terrain>(-50.0f, 50.0f);
+    terrains[Vector2{1, -1}] = std::make_unique<Terrain>(50.0f, -50.0f);
+    terrains[Vector2{1, 1}] = std::make_unique<Terrain>(50.0f, 50.0f);
+    terrains[Vector2{-1, -1}] = std::make_unique<Terrain>(-50.0f, -50.0f);
+    currentTerrain = Vector2{0, 0};
 }
 
 void TerrainManager::DrawTerrains()
 {
-    // rlEnableWireMode();
-    DrawModel(terrains[0]->getTerrain(), Vector3Zero(), 1, WHITE);
-    DrawModel(terrains[1]->getTerrain(), Vector3{0.0f, 0.0f, 50.0f}, 1, WHITE);
-    DrawModel(terrains[2]->getTerrain(), Vector3{0.0f, 0.0f, 100.0f}, 1, WHITE);
-    DrawModel(terrains[3]->getTerrain(), Vector3{50.0f, 0.0f, 0.0f}, 1, WHITE);
-    DrawModel(terrains[4]->getTerrain(), Vector3{50.0f, 0.0f, 50.0f}, 1, WHITE);
-    DrawModel(terrains[5]->getTerrain(), Vector3{50.0f, 0.0f, 100.0f}, 1, WHITE);
-    DrawModel(terrains[6]->getTerrain(), Vector3{100.0f, 0.0f, 0.0f}, 1, WHITE);
-    DrawModel(terrains[7]->getTerrain(), Vector3{100.0f, 0.0f, 50.0f}, 1, WHITE);
-    DrawModel(terrains[8]->getTerrain(), Vector3{100.0f, 0.0f, 100.0f}, 1, WHITE);
-    // rlDisableWireMode();
+    for (auto &terrain : terrains)
+    {
+        DrawModel(terrain.second->getTerrain(), terrain.second->getPosition(), 1, WHITE);
+    }
+
+    rlDisableWireMode();
 }
 
-Mesh *TerrainManager::getTerrainVertices(int index)
+void TerrainManager::UpdateTerrains()
 {
-    return &terrains[index]->getTerrain().meshes[0];
+    getCords();
+    if (!cords.empty())
+    {
+        for (const auto &cord : cords)
+        {
+            if (terrains.count(cord) == 0)
+            {
+                terrains[cord] = std::make_unique<Terrain>(cord.x * WIDTH, cord.y * HEIGHT);
+            }
+        }
+
+        for (auto it = terrains.begin(); it != terrains.end();)
+        {
+            if (cords.count(it->first) == 0)
+            {
+                it = terrains.erase(it);
+            }
+            else
+            {
+                it++;
+            }
+        }
+
+        cords.clear();
+    }
+}
+void TerrainManager::DrawTerrainGrid()
+{
+    DrawGrid(10, 50);
+}
+
+void TerrainManager::getCords()
+{
+    Player &player = Player::getInstance();
+    Vector2 pos = player.getPlayerCords();
+    if (pos != currentTerrain)
+    {
+        cords.insert(pos);
+        cords.insert(Vector2{pos.x, pos.y + 1});
+        cords.insert(Vector2{pos.x, pos.y - 1});
+        cords.insert(Vector2{pos.x - 1, pos.y});
+        cords.insert(Vector2{pos.x + 1, pos.y});
+        cords.insert(Vector2{pos.x - 1, pos.y + 1});
+        cords.insert(Vector2{pos.x + 1, pos.y - 1});
+        cords.insert(Vector2{pos.x + 1, pos.y + 1});
+        cords.insert(Vector2{pos.x - 1, pos.y - 1});
+        currentTerrain = pos;
+    }
 }

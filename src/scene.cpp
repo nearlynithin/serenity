@@ -1,5 +1,6 @@
 #include "game/scene.hpp"
 #include "game/grass.hpp"
+#include "game/player.hpp"
 #include "game/resource.hpp"
 #include "game/terrain.hpp"
 #include "raymath.h"
@@ -15,6 +16,8 @@ void Scene::DrawScene()
 {
     // rlEnableWireMode();
     TerrainManager::DrawTerrains();
+    TerrainManager::DrawTerrainGrid();
+    // Player::DrawPlayer();
     // rlDisableWireMode();
     rlDisableBackfaceCulling();
     // Grass::DrawGrass();
