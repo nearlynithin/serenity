@@ -30,7 +30,7 @@ class Terrain
     Model &getTerrain();
     void DrawTerrain();
     void setTexture();
-    void setShader();g
+    void setShader();
 };
 
 class TerrainManager
@@ -41,7 +41,7 @@ class TerrainManager
   public:
     static std::vector<position> grassPositions;
     static void LoadTerrains();
-    static void DrawTerrains();g
+    static void DrawTerrains();
     static Mesh *getTerrainVertices(int index);
 };
 
