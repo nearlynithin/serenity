@@ -6,6 +6,7 @@
 #include "utils.hpp"
 #include <stdlib.h>
 #include <string.h>
+#include <thread>
 #include <unordered_set>
 #define WIDTH 50.0f
 #define HEIGHT 50.0f
@@ -13,11 +14,11 @@
 #define RES_Y 100
 #define SCALE 100.0f
 
-// std::vector<std::unique_ptr<Terrain>> TerrainManager::terrains;
 std::unordered_map<Vector2, std::unique_ptr<Terrain>> TerrainManager::terrains;
 std::vector<position> TerrainManager::grassPositions;
 Vector2 TerrainManager::currentTerrain;
 std::unordered_set<Vector2> TerrainManager::cords;
+std::mutex TerrainManager::t_mutex;
 
 Terrain::Terrain(float offsetx, float offsety)
   : heightMultiplier(25.0f),
@@ -69,20 +70,8 @@ void Terrain::setShader()
 Terrain::~Terrain()
 {
     free(vertexData);
+    UnloadModel(terrain);
     // Terrain objects are automatically destroyed because of unique_ptr
-}
-
-void Terrain::updateTerrain(float time, float offsetx, float offsety)
-{
-    for (int i = 0; i < mesh.vertexCount * 3; i += 3)
-    {
-        float scaledX = vertexData[i] * noiseScale;
-        float scaledZ = vertexData[i + 2] * noiseScale;
-
-        float height = terrainNoise(scaledX + offsetx, scaledZ + offsety + time, SCALE);
-        vertexData[i + 1] = height * heightMultiplier;
-    }
-    UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
 }
 
 // Terrain manager
@@ -102,17 +91,19 @@ void TerrainManager::LoadTerrains()
 
 void TerrainManager::DrawTerrains()
 {
+    // std::lock_guard<std::mutex> lock(t_mutex);
+
     for (auto &terrain : terrains)
     {
         DrawModel(terrain.second->getTerrain(), terrain.second->getPosition(), 1, WHITE);
     }
-
-    rlDisableWireMode();
 }
 
 void TerrainManager::UpdateTerrains()
 {
-    getCords();
+
+    std::lock_guard<std::mutex> lock(t_mutex);
+    // getCords();
     if (!cords.empty())
     {
         for (const auto &cord : cords)
@@ -143,12 +134,13 @@ void TerrainManager::DrawTerrainGrid()
     DrawGrid(10, 50);
 }
 
-void TerrainManager::getCords()
+bool TerrainManager::getCords()
 {
     Player &player = Player::getInstance();
     Vector2 pos = player.getPlayerCords();
     if (pos != currentTerrain)
     {
+        std::lock_guard<std::mutex> lock(t_mutex);
         cords.insert(pos);
         cords.insert(Vector2{pos.x, pos.y + 1});
         cords.insert(Vector2{pos.x, pos.y - 1});
@@ -159,5 +151,24 @@ void TerrainManager::getCords()
         cords.insert(Vector2{pos.x + 1, pos.y + 1});
         cords.insert(Vector2{pos.x - 1, pos.y - 1});
         currentTerrain = pos;
+        return true;
     }
+    return false;
+}
+
+void TerrainManager::TerrainUpdater()
+{
+    while (true)
+    {
+        if (getCords())
+        {
+            UpdateTerrains();
+        }
+    }
+}
+
+void TerrainManager::setTerrainUpdater()
+{
+    std::thread t_updater(TerrainUpdater);
+    t_updater.detach();
 }

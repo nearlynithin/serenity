@@ -14,7 +14,7 @@ void Player::InitPlayer()
     Player &player = Player::getInstance();
     player.position = Vector3{0, 0, 0};
     player.height = 4.0f;
-    player.speed = 15.0f;
+    player.speed = 5.0f;
     Mesh mesh = GenMeshCylinder(1, player.height, 8);
     player.model = LoadModelFromMesh(mesh);
     Player::camera = {
@@ -92,5 +92,6 @@ void Player::UpdateCamera()
 
     Vector3 move = {0};
     Vector3 rot = {0.0f, 0.0f, 0.0f};
-    UpdateCameraPro(&Player::camera, move, rot, -10.0f);
+    // UpdateCameraPro(&Player::camera, move, rot, -10.0f);
+    UpdateCameraPro(&Player::camera, move, rot, 100.0f);
 }

@@ -3,6 +3,8 @@
 
 #include "raylib.h"
 #include <memory>
+#include <mutex>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -43,6 +45,9 @@ class TerrainManager
     static std::unordered_map<Vector2, std::unique_ptr<Terrain>> terrains;
     static std::unordered_set<Vector2> cords;
     static Vector2 currentTerrain;
+    // static std::thread t_updater;
+    static std::mutex t_mutex;
+    
 
   public:
     static std::vector<position> grassPositions;
@@ -50,8 +55,10 @@ class TerrainManager
     static void DrawTerrains();
     static Mesh *getTerrainVertices(int index);
     static void DrawTerrainGrid();
-    static void getCords();
+    static bool getCords();
     static void UpdateTerrains();
+    static void TerrainUpdater();
+    static void setTerrainUpdater();
 };
 
 #endif
