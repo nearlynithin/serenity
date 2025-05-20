@@ -30,7 +30,6 @@ bool Game::Initialize()
     TerrainManager::LoadTerrains();
 
     Player::InitPlayer();
-    TerrainManager::setTerrainUpdater();
 
     if (IsWindowReady())
     {
