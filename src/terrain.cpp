@@ -6,19 +6,18 @@
 #include "utils.hpp"
 #include <stdlib.h>
 #include <string.h>
-#include <thread>
 #include <unordered_set>
 #define WIDTH 50.0f
 #define HEIGHT 50.0f
 #define RES_X 100
 #define RES_Y 100
 #define SCALE 100.0f
+#define MAX_TERRAIN 20
 
 std::unordered_map<Vector2, std::unique_ptr<Terrain>> TerrainManager::terrains;
 std::vector<position> TerrainManager::grassPositions;
 Vector2 TerrainManager::currentTerrain;
 std::unordered_set<Vector2> TerrainManager::cords;
-std::mutex TerrainManager::t_mutex;
 
 Terrain::Terrain(float offsetx, float offsety)
   : heightMultiplier(25.0f),
@@ -77,98 +76,55 @@ Terrain::~Terrain()
 // Terrain manager
 void TerrainManager::LoadTerrains()
 {
-    terrains[Vector2{0, 0}] = std::make_unique<Terrain>(0.0f, 0.0f);
-    terrains[Vector2{0, 1}] = std::make_unique<Terrain>(0.0f, 50.0f);
-    terrains[Vector2{0, -1}] = std::make_unique<Terrain>(0.0f, -50.0f);
-    terrains[Vector2{-1, 0}] = std::make_unique<Terrain>(-50.0f, 0.0f);
-    terrains[Vector2{1, 0}] = std::make_unique<Terrain>(50.0f, 0.0f);
-    terrains[Vector2{-1, 1}] = std::make_unique<Terrain>(-50.0f, 50.0f);
-    terrains[Vector2{1, -1}] = std::make_unique<Terrain>(50.0f, -50.0f);
-    terrains[Vector2{1, 1}] = std::make_unique<Terrain>(50.0f, 50.0f);
-    terrains[Vector2{-1, -1}] = std::make_unique<Terrain>(-50.0f, -50.0f);
+    for (int i = -MAX_TERRAIN / 2; i < MAX_TERRAIN / 2; i++)
+    {
+        for (int j = -MAX_TERRAIN; j < MAX_TERRAIN / 2; j++)
+        {
+            Vector2 pos = Vector2{static_cast<float>(i), static_cast<float>(j)};
+            if (terrains.count(pos) == 0)
+            {
+                terrains[pos] = std::make_unique<Terrain>(i * WIDTH, j * HEIGHT);
+            }
+        }
+    }
     currentTerrain = Vector2{0, 0};
+    updateCords(currentTerrain);
 }
 
 void TerrainManager::DrawTerrains()
 {
-    // std::lock_guard<std::mutex> lock(t_mutex);
-
-    for (auto &terrain : terrains)
+    for (auto &cord : cords)
     {
-        DrawModel(terrain.second->getTerrain(), terrain.second->getPosition(), 1, WHITE);
+        Vector2 pos = Vector2{cord.x, cord.y};
+        DrawModel(terrains[pos]->getTerrain(), terrains[pos]->getPosition(), 1, WHITE);
     }
 }
 
 void TerrainManager::UpdateTerrains()
 {
-
-    std::lock_guard<std::mutex> lock(t_mutex);
-    // getCords();
-    if (!cords.empty())
+    Player &player = Player::getInstance();
+    Vector2 pos = player.getPlayerCords();
+    if (pos != currentTerrain)
     {
-        for (const auto &cord : cords)
-        {
-            if (terrains.count(cord) == 0)
-            {
-                terrains[cord] = std::make_unique<Terrain>(cord.x * WIDTH, cord.y * HEIGHT);
-            }
-        }
-
-        for (auto it = terrains.begin(); it != terrains.end();)
-        {
-            if (cords.count(it->first) == 0)
-            {
-                it = terrains.erase(it);
-            }
-            else
-            {
-                it++;
-            }
-        }
-
-        cords.clear();
+        updateCords(pos);
     }
+    currentTerrain = pos;
 }
 void TerrainManager::DrawTerrainGrid()
 {
     DrawGrid(10, 50);
 }
 
-bool TerrainManager::getCords()
+void TerrainManager::updateCords(Vector2 &pos)
 {
-    Player &player = Player::getInstance();
-    Vector2 pos = player.getPlayerCords();
-    if (pos != currentTerrain)
-    {
-        std::lock_guard<std::mutex> lock(t_mutex);
-        cords.insert(pos);
-        cords.insert(Vector2{pos.x, pos.y + 1});
-        cords.insert(Vector2{pos.x, pos.y - 1});
-        cords.insert(Vector2{pos.x - 1, pos.y});
-        cords.insert(Vector2{pos.x + 1, pos.y});
-        cords.insert(Vector2{pos.x - 1, pos.y + 1});
-        cords.insert(Vector2{pos.x + 1, pos.y - 1});
-        cords.insert(Vector2{pos.x + 1, pos.y + 1});
-        cords.insert(Vector2{pos.x - 1, pos.y - 1});
-        currentTerrain = pos;
-        return true;
-    }
-    return false;
-}
-
-void TerrainManager::TerrainUpdater()
-{
-    while (true)
-    {
-        if (getCords())
-        {
-            UpdateTerrains();
-        }
-    }
-}
-
-void TerrainManager::setTerrainUpdater()
-{
-    std::thread t_updater(TerrainUpdater);
-    t_updater.detach();
+    cords.clear();
+    cords.insert(pos);
+    cords.insert(Vector2{pos.x, pos.y + 1});
+    cords.insert(Vector2{pos.x, pos.y - 1});
+    cords.insert(Vector2{pos.x - 1, pos.y});
+    cords.insert(Vector2{pos.x + 1, pos.y});
+    cords.insert(Vector2{pos.x - 1, pos.y + 1});
+    cords.insert(Vector2{pos.x + 1, pos.y - 1});
+    cords.insert(Vector2{pos.x + 1, pos.y + 1});
+    cords.insert(Vector2{pos.x - 1, pos.y - 1});
 }
