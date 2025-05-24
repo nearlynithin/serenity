@@ -14,10 +14,9 @@ void Scene::SetModels()
 
 void Scene::DrawScene()
 {
-    // rlEnableWireMode();
     TerrainManager::DrawTerrains();
     TerrainManager::DrawTerrainGrid();
-    Player::DrawPlayer();
+    // Player::DrawPlayer();
     // rlDisableWireMode();
     rlDisableBackfaceCulling();
     // Grass::DrawGrass();

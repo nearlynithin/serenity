@@ -73,11 +73,11 @@ void Game::UpdateGame()
 {
     Player::UpdateCamera();
     TerrainManager::UpdateTerrains();
+    TerrainManager::UpdateCollision();
 }
 
 void Game::GenerateOutput()
 {
-    time += GetFrameTime();
 
     BeginDrawing();
     Color backg = ColorFromNormalized(Vector4{0.8, 1.0, 0.8, 1.0});

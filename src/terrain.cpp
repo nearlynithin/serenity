@@ -7,17 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unordered_set>
-#define WIDTH 50.0f
-#define HEIGHT 50.0f
-#define RES_X 100
-#define RES_Y 100
-#define SCALE 100.0f
-#define MAX_TERRAIN 20
 
 std::unordered_map<Vector2, std::unique_ptr<Terrain>> TerrainManager::terrains;
 std::vector<position> TerrainManager::grassPositions;
 Vector2 TerrainManager::currentTerrain;
 std::unordered_set<Vector2> TerrainManager::cords;
+RayCollision TerrainManager::collision;
+Ray TerrainManager::playerMarker;
 
 Terrain::Terrain(float offsetx, float offsety)
   : heightMultiplier(25.0f),
@@ -29,7 +25,6 @@ Terrain::Terrain(float offsetx, float offsety)
     mesh = GenMeshPlane(WIDTH, HEIGHT, resX, resY);
     vertexData = (float *)malloc(mesh.vertexCount * 3 * sizeof(float));
     memcpy(vertexData, mesh.vertices, mesh.vertexCount * 3 * sizeof(float));
-    terrain = LoadModelFromMesh(mesh);
 
     for (int i = 0; i < mesh.vertexCount * 3; i += 3)
     {
@@ -39,7 +34,13 @@ Terrain::Terrain(float offsetx, float offsety)
         float height = terrainNoise(scaledX + offsetx * 10, scaledZ + offsety * 10, 100.0f);
         vertexData[i + 1] = height * heightMultiplier;
     }
+    memcpy(mesh.vertices, vertexData, mesh.vertexCount * 3 * sizeof(float));
     UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
+    terrain = LoadModelFromMesh(mesh);
+    bbox = GetMeshBoundingBox(mesh);
+    bbox.min = Vector3Add(bbox.min, position);
+    bbox.max = Vector3Add(bbox.max, position);
+    terrain.transform = MatrixTranslate(position.x, position.y, position.z);
     setTexture();
     setShader();
 }
@@ -66,6 +67,11 @@ void Terrain::setShader()
     // terrain.materials[0].shader = shadow_shader;
 }
 
+BoundingBox &Terrain::getBBox()
+{
+    return bbox;
+}
+
 Terrain::~Terrain()
 {
     free(vertexData);
@@ -88,6 +94,8 @@ void TerrainManager::LoadTerrains()
         }
     }
     currentTerrain = Vector2{0, 0};
+    Vector3 markerpos = Vector3Add(Vector3{0.0f, 100.0f, 0.0f}, Player::getInstance().GetPlayerPosition());
+    playerMarker = Ray{markerpos, Vector3{0.0f, -1.0f, 0.0f}};
     updateCords(currentTerrain);
 }
 
@@ -96,19 +104,23 @@ void TerrainManager::DrawTerrains()
     for (auto &cord : cords)
     {
         Vector2 pos = Vector2{cord.x, cord.y};
-        DrawModel(terrains[pos]->getTerrain(), terrains[pos]->getPosition(), 1, WHITE);
+        // the terrain position is translated into the terrain model in the constructor :)
+        DrawModel(terrains[pos]->getTerrain(), Vector3Zero(), 1, WHITE);
     }
 }
 
 void TerrainManager::UpdateTerrains()
 {
     Player &player = Player::getInstance();
-    Vector2 pos = player.getPlayerCords();
-    if (pos != currentTerrain)
+    Vector3 pos = player.GetPlayerPosition();
+    float gridX = static_cast<int>(floorf((pos.x + WIDTH * 5.0f) / WIDTH) - 5);
+    float gridZ = static_cast<int>(floorf((pos.z + HEIGHT * 5.0f) / HEIGHT) - 5);
+    Vector2 c_pos = Vector2{gridX, gridZ};
+    if (c_pos != currentTerrain)
     {
-        updateCords(pos);
+        updateCords(c_pos);
     }
-    currentTerrain = pos;
+    currentTerrain = c_pos;
 }
 void TerrainManager::DrawTerrainGrid()
 {
@@ -127,4 +139,33 @@ void TerrainManager::updateCords(Vector2 &pos)
     cords.insert(Vector2{pos.x + 1, pos.y - 1});
     cords.insert(Vector2{pos.x + 1, pos.y + 1});
     cords.insert(Vector2{pos.x - 1, pos.y - 1});
+}
+
+void TerrainManager::UpdateCollision()
+{
+    Player player = Player::getInstance();
+    Vector3 markerOrigin = Vector3Add(player.GetPlayerPosition(), Vector3{0.0f, 100.0f, 0.0f});
+    playerMarker = Ray{markerOrigin, Vector3{0.0f, -1.0f, 0.0f}};
+    for (auto it = terrains.begin(); it != terrains.end();)
+    {
+        Terrain &terrain = *it->second;
+        RayCollision boxHitInfo = GetRayCollisionBox(playerMarker, terrain.getBBox());
+
+        if ((boxHitInfo.hit) && (boxHitInfo.distance < __FLT_MAX__))
+        {
+            RayCollision meshHitInfo;
+            meshHitInfo =
+                GetRayCollisionMesh(playerMarker, terrain.getTerrain().meshes[0], terrain.getTerrain().transform);
+            if (meshHitInfo.hit)
+            {
+                Vector3 playerpos = player.GetPlayerPosition();
+                playerpos = Vector3{playerpos.x, meshHitInfo.point.y, playerpos.z};
+                Player::getInstance().setPlayerPosition(playerpos);
+                playerMarker.position.x = playerpos.x;
+                playerMarker.position.z = playerpos.z;
+                break;
+            }
+        }
+        it++;
+    }
 }

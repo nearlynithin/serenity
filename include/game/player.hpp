@@ -24,9 +24,9 @@ class Player
     static void InitPlayer();
     static void DrawPlayer();
     static Vector3 GetPlayerPosition();
-    static Vector2 getPlayerCords();
     static void PlayerMoves();
     static void UpdateCamera();
+    static void setPlayerPosition(Vector3 pos);
 };
 
 #endif

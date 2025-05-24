@@ -64,14 +64,6 @@ void Player::PlayerMoves()
         player.position = Vector3Add(player.position, Vector3Scale(right, player.speed * delta));
 }
 
-Vector2 Player::getPlayerCords()
-{
-    Vector3 pos = Player::getInstance().GetPlayerPosition();
-    float gridX = static_cast<int>(floorf((pos.x + 250.0f) / 50.0f) - 5);
-    float gridZ = static_cast<int>(floorf((pos.z + 250.0f) / 50.0f) - 5);
-    return Vector2{gridX, gridZ};
-}
-
 void Player::UpdateCamera()
 {
     Vector3 playerPos = Player::getInstance().GetPlayerPosition();
@@ -92,6 +84,13 @@ void Player::UpdateCamera()
 
     Vector3 move = {0};
     Vector3 rot = {0.0f, 0.0f, 0.0f};
-    // UpdateCameraPro(&Player::camera, move, rot, -10.0f);
-    UpdateCameraPro(&Player::camera, move, rot, 100.0f);
+    UpdateCameraPro(&Player::camera, move, rot, -30.0f);
+    // UpdateCameraPro(&Player::camera, move, rot, 60.0f);
+}
+
+void Player::setPlayerPosition(Vector3 pos)
+{
+    // std::cout << "SET : {" << pos.x << "," << pos.y << "," << pos.z << ")\n";
+    Player &player = Player::getInstance();
+    player.position = pos;
 }

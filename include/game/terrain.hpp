@@ -7,6 +7,12 @@
 #include <unordered_set>
 #include <vector>
 
+#define WIDTH 50.0f
+#define HEIGHT 50.0f
+#define RES_X 100
+#define RES_Y 100
+#define MAX_TERRAIN 20
+
 typedef struct
 {
     float x;
@@ -25,6 +31,7 @@ class Terrain
     Mesh mesh;
     Model terrain;
     Vector3 position;
+    BoundingBox bbox;
 
   public:
     Terrain(float offestx, float offesty);
@@ -33,15 +40,17 @@ class Terrain
     Vector3 getPosition();
     void setTexture();
     void setShader();
+    BoundingBox &getBBox();
 };
 
 class TerrainManager
 {
   private:
-    // static std::vector<std::unique_ptr<Terrain>> terrains;
     static std::unordered_map<Vector2, std::unique_ptr<Terrain>> terrains;
     static std::unordered_set<Vector2> cords;
     static Vector2 currentTerrain;
+    static RayCollision collision;
+    static Ray playerMarker;
 
   public:
     static std::vector<position> grassPositions;
@@ -51,6 +60,7 @@ class TerrainManager
     static void DrawTerrainGrid();
     static void updateCords(Vector2 &pos);
     static void UpdateTerrains();
+    static void UpdateCollision();
 };
 
 #endif
