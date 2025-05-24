@@ -16,7 +16,7 @@ RayCollision TerrainManager::collision;
 Ray TerrainManager::playerMarker;
 
 Terrain::Terrain(float offsetx, float offsety)
-  : heightMultiplier(25.0f),
+  : heightMultiplier(50.0f),
     noiseScale(10.0f),
     resX(RES_X),
     resY(RES_Y),

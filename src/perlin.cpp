@@ -67,8 +67,8 @@ float singlePerlin(float x, float y)
 float perlin(float x, float y, float scale, int octaves, float persistence, float lacunarity)
 {
     float total = 0.0f;
-    float frequency = 1.0f;
-    float amplitude = 1.0f;
+    float frequency = 0.5f;
+    float amplitude = 2.0f;
     float maxValue = 0.0f;
 
     for (int i = 0; i < octaves; i++)
@@ -78,11 +78,8 @@ float perlin(float x, float y, float scale, int octaves, float persistence, floa
 
         float noiseValue = singlePerlin(nx, ny);
 
-        // Post-process noise value for smoother mountains
-        // Apply subtle curve to create more rounded terrain features
         if (i < 2)
-        { // Only apply to lower octaves (larger features)
-            // This smooths the large features while preserving some detail
+        {
             noiseValue = (noiseValue > 0) ? powf(noiseValue, 1.2f) : -powf(-noiseValue, 1.2f);
         }
 
@@ -105,9 +102,9 @@ float terrainNoise(float x, float y, float scale)
 {
     float mountains = perlin(x, y, scale * 2.0f, 2, 0.5f, 2.0f);
 
-    mountains = (mountains > 0) ? powf(mountains, 1.4f) : -powf(-mountains, 1.4f);
+    mountains = (mountains > 0) ? powf(mountains, 4.0f) : -powf(-mountains, 1.4f);
     float hills = perlin(x + 100.0f, y + 100.0f, scale, 3, 0.4f, 2.0f) * 0.25f;
 
     float details = perlin(x - 200.0f, y - 200.0f, scale * 0.5f, 2, 0.3f, 2.0f) * 0.1f;
-    return mountains + hills + details;
+    return -mountains + hills + -details;
 }
