@@ -1,27 +1,26 @@
 #ifndef GRASS_H
 #define GRASS_H
 
-#define MAX_INSTANCES 50000
+#define MAX_INSTANCES 20000
 
 #include "raylib.h"
 #include "raymath.h"
-#include "terrain.hpp"
-#include <vector>
+#include "utils.h"
+#include <set>
 
 class Grass
 {
   private:
-    static std::vector<position> grassPos;
-    static Model grass;
-    static Matrix *transforms;
-    static Material matInstances;
-    static long count;
+    std::set<Vector2> grassPos;
+    Model grass;
+    Matrix *transforms;
+    Material matInstances;
 
   public:
-    static void InitGrass();
-    static void DrawGrass();
-    static void UnloadGrass();
-    static position getGrassPosition();
+    void InitGrass(float offset_x, float offset_y, float noise, float heightFactor, float width, float height,
+                   Mesh &mesh);
+    void DrawGrass();
+    void UnloadGrass();
 };
 
 #endif

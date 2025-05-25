@@ -27,4 +27,5 @@ void ResourceLoader::LoadAllModels()
 {
     auto &resourceManager = ResourceManager::getInstance();
     resourceManager.Loadmodel("oiiaioooooiai", "assets/cat.glb");
+    resourceManager.Loadmodel("grass", "assets/grass.obj");
 }

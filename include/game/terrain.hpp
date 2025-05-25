@@ -1,6 +1,7 @@
 #ifndef TERRAIN_H
 #define TERRAIN_H
 
+#include "game/grass.hpp"
 #include "raylib.h"
 #include <memory>
 #include <unordered_map>
@@ -11,20 +12,13 @@
 #define HEIGHT 50.0f
 #define RES_X 100
 #define RES_Y 100
-#define MAX_TERRAIN 20
-
-typedef struct
-{
-    float x;
-    float y;
-    float z;
-} position;
+#define MAX_TERRAIN 10
+#define HEIGHT_FACTOR 50.0f
+#define NOISE_SCALE 10.0f
 
 class Terrain
 {
   private:
-    float heightMultiplier;
-    float noiseScale;
     float *vertexData;
     int resX;
     int resY;
@@ -32,6 +26,7 @@ class Terrain
     Model terrain;
     Vector3 position;
     BoundingBox bbox;
+    Grass grass;
 
   public:
     Terrain(float offestx, float offesty);
@@ -41,6 +36,7 @@ class Terrain
     void setTexture();
     void setShader();
     BoundingBox &getBBox();
+    void DrawGrass();
 };
 
 class TerrainManager
@@ -51,12 +47,11 @@ class TerrainManager
     static Vector2 currentTerrain;
     static RayCollision collision;
     static Ray playerMarker;
+    static Grass grass;
 
   public:
-    static std::vector<position> grassPositions;
     static void LoadTerrains();
     static void DrawTerrains();
-    static Mesh *getTerrainVertices(int index);
     static void DrawTerrainGrid();
     static void updateCords(Vector2 &pos);
     static void UpdateTerrains();

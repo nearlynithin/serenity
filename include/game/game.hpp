@@ -28,10 +28,6 @@ class Game
     const int screenWidth;
     const int screenHeight;
     bool mIsRunning;
-
-    float x = 0;
-    float y = 0;
-    float z = 0;
 };
 
 #endif

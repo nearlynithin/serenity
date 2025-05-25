@@ -1,4 +1,5 @@
 #include "game/terrain.hpp"
+#include "game/grass.hpp"
 #include "game/player.hpp"
 #include "game/resource.hpp"
 #include "perlin.hpp"
@@ -9,16 +10,14 @@
 #include <unordered_set>
 
 std::unordered_map<Vector2, std::unique_ptr<Terrain>> TerrainManager::terrains;
-std::vector<position> TerrainManager::grassPositions;
 Vector2 TerrainManager::currentTerrain;
 std::unordered_set<Vector2> TerrainManager::cords;
 RayCollision TerrainManager::collision;
 Ray TerrainManager::playerMarker;
+Grass TerrainManager::grass;
 
 Terrain::Terrain(float offsetx, float offsety)
-  : heightMultiplier(50.0f),
-    noiseScale(10.0f),
-    resX(RES_X),
+  : resX(RES_X),
     resY(RES_Y),
     position(Vector3{WIDTH / 2 + offsetx, 0, HEIGHT / 2 + offsety})
 {
@@ -28,11 +27,11 @@ Terrain::Terrain(float offsetx, float offsety)
 
     for (int i = 0; i < mesh.vertexCount * 3; i += 3)
     {
-        float scaledX = vertexData[i] * noiseScale;
-        float scaledZ = vertexData[i + 2] * noiseScale;
+        float scaledX = vertexData[i] * NOISE_SCALE;
+        float scaledZ = vertexData[i + 2] * NOISE_SCALE;
 
         float height = terrainNoise(scaledX + offsetx * 10, scaledZ + offsety * 10, 100.0f);
-        vertexData[i + 1] = height * heightMultiplier;
+        vertexData[i + 1] = height * HEIGHT_FACTOR;
     }
     memcpy(mesh.vertices, vertexData, mesh.vertexCount * 3 * sizeof(float));
     UpdateMeshBuffer(mesh, 0, vertexData, mesh.vertexCount * 3 * sizeof(float), 0);
@@ -41,6 +40,7 @@ Terrain::Terrain(float offsetx, float offsety)
     bbox.min = Vector3Add(bbox.min, position);
     bbox.max = Vector3Add(bbox.max, position);
     terrain.transform = MatrixTranslate(position.x, position.y, position.z);
+    grass.InitGrass(offsetx, offsety, NOISE_SCALE, HEIGHT_FACTOR, WIDTH, HEIGHT, terrain.meshes[0]);
     setTexture();
     setShader();
 }
@@ -72,11 +72,15 @@ BoundingBox &Terrain::getBBox()
     return bbox;
 }
 
+void Terrain::DrawGrass()
+{
+    grass.DrawGrass();
+}
+
 Terrain::~Terrain()
 {
     free(vertexData);
     UnloadModel(terrain);
-    // Terrain objects are automatically destroyed because of unique_ptr
 }
 
 // Terrain manager
@@ -106,6 +110,7 @@ void TerrainManager::DrawTerrains()
         Vector2 pos = Vector2{cord.x, cord.y};
         // the terrain position is translated into the terrain model in the constructor :)
         DrawModel(terrains[pos]->getTerrain(), Vector3Zero(), 1, WHITE);
+        terrains[pos]->DrawGrass();
     }
 }
 

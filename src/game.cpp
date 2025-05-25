@@ -1,5 +1,4 @@
 #include "game/game.hpp"
-#include "game/grass.hpp"
 #include "game/lights.hpp"
 #include "game/player.hpp"
 #include "game/resource.hpp"
