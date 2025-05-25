@@ -109,8 +109,10 @@ void TerrainManager::DrawTerrains()
     {
         Vector2 pos = Vector2{cord.x, cord.y};
         // the terrain position is translated into the terrain model in the constructor :)
-        DrawModel(terrains[pos]->getTerrain(), Vector3Zero(), 1, WHITE);
+        DrawModel(terrains[pos]->getTerrain(), Vector3Zero(), 1, DARKBROWN);
+        rlDisableBackfaceCulling();
         terrains[pos]->DrawGrass();
+        rlEnableBackfaceCulling();
     }
 }
 
