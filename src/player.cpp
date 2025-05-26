@@ -31,7 +31,8 @@ void Player::InitPlayer()
 void Player::DrawPlayer()
 {
     Player &player = Player::getInstance();
-    DrawModel(player.model, player.position, 0.4f, RED);
+    DrawModelEx(player.model, player.position, Vector3{0.0f, 1.0f, 0.0f}, Player::yaw * RAD2DEG,
+                Vector3{0.4f, 0.4f, 0.4f}, RED);
 }
 
 Vector3 Player::GetPlayerPosition()
@@ -84,7 +85,7 @@ void Player::UpdateCamera()
 
     Vector3 move = {0};
     Vector3 rot = {0.0f, 0.0f, 0.0f};
-    UpdateCameraPro(&Player::camera, move, rot, -1.0f);
+    UpdateCameraPro(&Player::camera, move, rot, -10.0f);
     // UpdateCameraPro(&Player::camera, move, rot, 100.0f);
 }
 

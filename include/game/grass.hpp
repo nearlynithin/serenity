@@ -1,7 +1,7 @@
 #ifndef GRASS_H
 #define GRASS_H
 
-#define MAX_INSTANCES 20000
+#define MAX_INSTANCES 30000
 
 #include "raylib.h"
 #include "raymath.h"

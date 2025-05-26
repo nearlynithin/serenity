@@ -16,9 +16,9 @@ void Scene::DrawScene()
 {
     TerrainManager::DrawTerrains();
     TerrainManager::DrawTerrainGrid();
-    Player::DrawPlayer();
+    // Player::DrawPlayer();
+    // rlEnableWireMode();
     // rlDisableWireMode();
-    rlDisableBackfaceCulling();
-    // Grass::DrawGrass();
-    rlEnableBackfaceCulling();
+    // rlDisableBackfaceCulling();
+    // rlEnableBackfaceCulling();
 }

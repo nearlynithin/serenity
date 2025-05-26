@@ -31,15 +31,15 @@ void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightF
             float scaledX = worldX * noise + offset_x * 10.0f;
             float scaledZ = worldZ * noise + offset_y * 10.0f;
 
-            float h = terrainNoise(scaledX, scaledZ, 100.0f);
+            float h = terrainNoise(scaledX, scaledZ, 200.0f);
             float y = h * heightFactor;
 
             Vector3 pos = {worldX + (width / 2 + offset_x), y, worldZ + (height / 2 + offset_y)};
 
-            float rotY = (float)GetRandomValue(0, 360) * DEG2RAD;
+            float rotX = (float)GetRandomValue(-70, -45) * DEG2RAD;
             float scaleY = GetRandomValue(3, 5);
 
-            Matrix matRot = MatrixRotateY(rotY);
+            Matrix matRot = MatrixRotateX(rotX);
             Matrix matScale = MatrixScale(4, scaleY, 4);
             Matrix matTrans = MatrixTranslate(pos.x, pos.y, pos.z);
 

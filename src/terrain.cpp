@@ -4,6 +4,7 @@
 #include "game/resource.hpp"
 #include "perlin.hpp"
 #include "raymath.h"
+#include "rlFrustum.h"
 #include "utils.hpp"
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +16,7 @@ std::unordered_set<Vector2> TerrainManager::cords;
 RayCollision TerrainManager::collision;
 Ray TerrainManager::playerMarker;
 Grass TerrainManager::grass;
+RLFrustum TerrainManager::frustum;
 
 Terrain::Terrain(float offsetx, float offsety)
   : resX(RES_X),
@@ -30,7 +32,7 @@ Terrain::Terrain(float offsetx, float offsety)
         float scaledX = vertexData[i] * NOISE_SCALE;
         float scaledZ = vertexData[i + 2] * NOISE_SCALE;
 
-        float height = terrainNoise(scaledX + offsetx * 10, scaledZ + offsety * 10, 100.0f);
+        float height = terrainNoise(scaledX + offsetx * 10, scaledZ + offsety * 10, 200.0f);
         vertexData[i + 1] = height * HEIGHT_FACTOR;
     }
     memcpy(mesh.vertices, vertexData, mesh.vertexCount * 3 * sizeof(float));
@@ -100,53 +102,49 @@ void TerrainManager::LoadTerrains()
     currentTerrain = Vector2{0, 0};
     Vector3 markerpos = Vector3Add(Vector3{0.0f, 100.0f, 0.0f}, Player::getInstance().GetPlayerPosition());
     playerMarker = Ray{markerpos, Vector3{0.0f, -1.0f, 0.0f}};
-    updateCords(currentTerrain);
+    // updateCords(currentTerrain);
 }
 
 void TerrainManager::DrawTerrains()
 {
-    for (auto &cord : cords)
+    Player player = Player::getInstance();
+    frustum.Extract();
+
+    std::cout << "[TERRAINS BEING DRAWN]:\n";
+    for (auto &[pos, terrain] : terrains)
     {
-        Vector2 pos = Vector2{cord.x, cord.y};
-        // the terrain position is translated into the terrain model in the constructor :)
-        DrawModel(terrains[pos]->getTerrain(), Vector3Zero(), 1, DARKBROWN);
-        rlDisableBackfaceCulling();
-        terrains[pos]->DrawGrass();
-        rlEnableBackfaceCulling();
+        if (frustum.AABBoxIn(terrain->getBBox().min, terrain->getBBox().max))
+        {
+            float distanceSq = Vector3DistanceSqr(player.GetPlayerPosition(), terrain->getPosition());
+            if (distanceSq < VIEW_BOX_DISTANCE * VIEW_BOX_DISTANCE)
+            {
+                std::cout << "(" << pos.x << "," << pos.y << ") ";
+                DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
+                terrain->DrawGrass();
+            }
+        }
     }
+    std::cout << "\n[END]\n ";
 }
 
-void TerrainManager::UpdateTerrains()
-{
-    Player &player = Player::getInstance();
-    Vector3 pos = player.GetPlayerPosition();
-    float gridX = static_cast<int>(floorf((pos.x + WIDTH * 5.0f) / WIDTH) - 5);
-    float gridZ = static_cast<int>(floorf((pos.z + HEIGHT * 5.0f) / HEIGHT) - 5);
-    Vector2 c_pos = Vector2{gridX, gridZ};
-    if (c_pos != currentTerrain)
-    {
-        updateCords(c_pos);
-    }
-    currentTerrain = c_pos;
-}
 void TerrainManager::DrawTerrainGrid()
 {
     DrawGrid(10, 50);
 }
 
-void TerrainManager::updateCords(Vector2 &pos)
-{
-    cords.clear();
-    cords.insert(pos);
-    cords.insert(Vector2{pos.x, pos.y + 1});
-    cords.insert(Vector2{pos.x, pos.y - 1});
-    cords.insert(Vector2{pos.x - 1, pos.y});
-    cords.insert(Vector2{pos.x + 1, pos.y});
-    cords.insert(Vector2{pos.x - 1, pos.y + 1});
-    cords.insert(Vector2{pos.x + 1, pos.y - 1});
-    cords.insert(Vector2{pos.x + 1, pos.y + 1});
-    cords.insert(Vector2{pos.x - 1, pos.y - 1});
-}
+// void TerrainManager::updateCords(Vector2 &pos)
+// {
+//     cords.clear();
+//     cords.insert(pos);
+//     cords.insert(Vector2{pos.x, pos.y + 1});
+//     cords.insert(Vector2{pos.x, pos.y - 1});
+//     cords.insert(Vector2{pos.x - 1, pos.y});
+//     cords.insert(Vector2{pos.x + 1, pos.y});
+//     cords.insert(Vector2{pos.x - 1, pos.y + 1});
+//     cords.insert(Vector2{pos.x + 1, pos.y - 1});
+//     cords.insert(Vector2{pos.x + 1, pos.y + 1});
+//     cords.insert(Vector2{pos.x - 1, pos.y - 1});
+// }
 
 void TerrainManager::UpdateCollision()
 {

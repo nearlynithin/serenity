@@ -71,7 +71,7 @@ void Game::ProcessInput()
 void Game::UpdateGame()
 {
     Player::UpdateCamera();
-    TerrainManager::UpdateTerrains();
+    // TerrainManager::UpdateTerrains();
     TerrainManager::UpdateCollision();
 }
 

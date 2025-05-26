@@ -3,6 +3,7 @@
 
 #include "game/grass.hpp"
 #include "raylib.h"
+#include "rlFrustum.h"
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -10,10 +11,10 @@
 
 #define WIDTH 50.0f
 #define HEIGHT 50.0f
-#define RES_X 100
-#define RES_Y 100
-#define MAX_TERRAIN 10
-#define HEIGHT_FACTOR 50.0f
+#define RES_X 80
+#define RES_Y 80
+#define MAX_TERRAIN 20
+#define HEIGHT_FACTOR 100.0f
 #define NOISE_SCALE 10.0f
 
 class Terrain
@@ -48,13 +49,14 @@ class TerrainManager
     static RayCollision collision;
     static Ray playerMarker;
     static Grass grass;
+    static RLFrustum frustum;
 
   public:
     static void LoadTerrains();
     static void DrawTerrains();
     static void DrawTerrainGrid();
-    static void updateCords(Vector2 &pos);
-    static void UpdateTerrains();
+    // static void updateCords(Vector2 &pos);
+    // static void UpdateTerrains();
     static void UpdateCollision();
 };
 
