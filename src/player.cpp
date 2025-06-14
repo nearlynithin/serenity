@@ -21,7 +21,7 @@ void Player::InitPlayer()
         .position = {10.0f, 10.0f, 10.0f},
         .target = {0.0f, 0.0f, 0.0f},
         .up = {0.0f, 1.0f, 0.0f},
-        .fovy = 45.0f,
+        .fovy = 70.0f,
         .projection = CAMERA_PERSPECTIVE,
     };
     Player::mouseSensitivity = 0.003f;
@@ -67,8 +67,11 @@ void Player::PlayerMoves()
 
 void Player::UpdateCamera()
 {
-    Vector3 playerPos = Player::getInstance().GetPlayerPosition();
+    Player player = Player::getInstance();
+    Vector3 playerPos = player.GetPlayerPosition();
     Vector2 mouseDelta = GetMouseDelta();
+
+    playerPos = Vector3Add(playerPos, Vector3{0.0f, player.height, 0.0f});
 
     yaw -= mouseDelta.x * mouseSensitivity;
     pitch += mouseDelta.y * mouseSensitivity;
@@ -85,7 +88,7 @@ void Player::UpdateCamera()
 
     Vector3 move = {0};
     Vector3 rot = {0.0f, 0.0f, 0.0f};
-    UpdateCameraPro(&Player::camera, move, rot, 4.0f);
+    UpdateCameraPro(&Player::camera, move, rot, -20.0f);
     // UpdateCameraPro(&Player::camera, move, rot, 100.0f);
 }
 
