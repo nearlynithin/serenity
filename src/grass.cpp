@@ -74,9 +74,9 @@ void Grass::DrawGrass(Camera3D &camera)
 {
     Animate();
     Shader grassShader = ResourceManager::getInstance().getShader("grassShader");
-    SetShaderValue(grassShader, camPosLoc, &camera.position, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(grassShader, camPosLoc, &camera.position, SHADER_UNIFORM_VEC3);
     SetShaderValue(grassShader, grassShader.locs[SHADER_LOC_VECTOR_VIEW], &camera.position, SHADER_UNIFORM_VEC3);
-    SetShaderValue(grassShader, camTargetLoc, &camera.target, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(grassShader, camTargetLoc, &camera.target, SHADER_UNIFORM_VEC3);
     SetShaderValue(grassShader, ambientLoc, &ambient, SHADER_UNIFORM_VEC4);
     SetShaderValue(grassShader, fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
 

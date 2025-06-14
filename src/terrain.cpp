@@ -131,9 +131,9 @@ void TerrainManager::DrawTerrains()
                 std::cout << "(" << pos.x << "," << pos.y << ") ";
                 terrain->UpdateShader(player.camera);
                 DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
-                rlDisableBackfaceCulling();
+                // rlDisableBackfaceCulling();
                 terrain->DrawGrass(player.camera);
-                rlEnableBackfaceCulling();
+                // rlEnableBackfaceCulling();
             }
         }
     }
