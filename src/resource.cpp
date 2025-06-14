@@ -28,4 +28,6 @@ void ResourceLoader::LoadAllModels()
     auto &resourceManager = ResourceManager::getInstance();
     resourceManager.Loadmodel("oiiaioooooiai", "assets/cat.glb");
     resourceManager.Loadmodel("grass", "assets/grass.obj");
+    SetTextureFilter(resourceManager.getModel("grass").materials[0].maps[MATERIAL_MAP_DIFFUSE].texture,
+                     TEXTURE_FILTER_BILINEAR);
 }

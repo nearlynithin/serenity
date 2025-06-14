@@ -65,8 +65,7 @@ void Terrain::setTexture()
 
 void Terrain::setShader()
 {
-    // Shader shadow_shader = ResourceManager::getInstance().getShader("shadowShader");
-    // terrain.materials[0].shader = shadow_shader;
+    // terrain.materials[0].shader = ResourceManager::getInstance().getShader("grassShader");
 }
 
 BoundingBox &Terrain::getBBox()
@@ -74,9 +73,9 @@ BoundingBox &Terrain::getBBox()
     return bbox;
 }
 
-void Terrain::DrawGrass()
+void Terrain::DrawGrass(Camera3D &camera)
 {
-    grass.DrawGrass();
+    grass.DrawGrass(camera);
 }
 
 Terrain::~Terrain()
@@ -120,7 +119,7 @@ void TerrainManager::DrawTerrains()
             {
                 std::cout << "(" << pos.x << "," << pos.y << ") ";
                 DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
-                terrain->DrawGrass();
+                terrain->DrawGrass(player.camera);
             }
         }
     }

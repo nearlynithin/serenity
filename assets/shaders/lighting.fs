@@ -22,10 +22,13 @@ uniform vec3 viewPos;
 uniform float fogDensity;
 const vec4 fogColor = vec4(0.8, 1.0, 0.8, 1.0);
 
+
 void main()
 {
     // Texel color fetching from texture sampler
     vec4 texelColor = texture(texture0, fragTexCoord);
+    if (texelColor.a < 0.3) discard; 
+    
     
     // Calculate lighting
     vec3 lightDot = vec3(0.0);
@@ -43,7 +46,8 @@ void main()
     }
     specular += specCo;
     
-    finalColor = (texelColor*((colDiffuse + vec4(specular, 1.0))*vec4(lightDot, 1.0)));
+    vec3 finalLighting = clamp((lightDot + specular), 0.0, 1.0);
+    finalColor = texelColor * colDiffuse * vec4(finalLighting, 1.0);
     finalColor += texelColor*(ambient/10.0)*colDiffuse;
     
     // Gamma correction

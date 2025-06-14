@@ -15,8 +15,8 @@ void Scene::SetModels()
 void Scene::DrawScene()
 {
     TerrainManager::DrawTerrains();
-    TerrainManager::DrawTerrainGrid();
-    // Player::DrawPlayer();
+    // TerrainManager::DrawTerrainGrid();
+    Player::DrawPlayer();
     // rlEnableWireMode();
     // rlDisableWireMode();
     // rlDisableBackfaceCulling();

@@ -85,7 +85,7 @@ void Player::UpdateCamera()
 
     Vector3 move = {0};
     Vector3 rot = {0.0f, 0.0f, 0.0f};
-    UpdateCameraPro(&Player::camera, move, rot, -10.0f);
+    UpdateCameraPro(&Player::camera, move, rot, 4.0f);
     // UpdateCameraPro(&Player::camera, move, rot, 100.0f);
 }
 
