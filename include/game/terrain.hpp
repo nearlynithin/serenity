@@ -30,6 +30,9 @@ class Terrain
     Grass grass;
 
   public:
+    int fogDensityLoc;
+    int ambientLoc;
+    int viewPosLoc;
     Terrain(float offestx, float offesty);
     virtual ~Terrain();
     Model &getTerrain();
@@ -37,6 +40,7 @@ class Terrain
     void setTexture();
     void setShader();
     BoundingBox &getBBox();
+    void UpdateShader(Camera3D & camera);
     void DrawGrass(Camera3D &camera);
 };
 

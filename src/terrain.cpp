@@ -65,12 +65,24 @@ void Terrain::setTexture()
 
 void Terrain::setShader()
 {
-    // terrain.materials[0].shader = ResourceManager::getInstance().getShader("grassShader");
+    Shader ts = ResourceManager::getInstance().getShader("terrainShader");
+    terrain.materials[0].shader = ts;
+    fogDensityLoc = GetShaderLocation(ts, "fogDensity");
+    ambientLoc = GetShaderLocation(ts, "ambient");
+    viewPosLoc = GetShaderLocation(ts, "viewPos");
 }
 
 BoundingBox &Terrain::getBBox()
 {
     return bbox;
+}
+
+void Terrain::UpdateShader(Camera3D &camera)
+{
+    Shader ts = ResourceManager::getInstance().getShader("terrainShader");
+    SetShaderValue(ts, fogDensityLoc, &grass.fogDensity, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ts, ambientLoc, &grass.ambient, SHADER_UNIFORM_VEC4);
+    SetShaderValue(ts, viewPosLoc, &camera.position, SHADER_UNIFORM_VEC3);
 }
 
 void Terrain::DrawGrass(Camera3D &camera)
@@ -108,7 +120,6 @@ void TerrainManager::DrawTerrains()
 {
     Player player = Player::getInstance();
     frustum.Extract();
-
     std::cout << "[TERRAINS BEING DRAWN]:\n";
     for (auto &[pos, terrain] : terrains)
     {
@@ -118,8 +129,11 @@ void TerrainManager::DrawTerrains()
             if (distanceSq < VIEW_BOX_DISTANCE * VIEW_BOX_DISTANCE)
             {
                 std::cout << "(" << pos.x << "," << pos.y << ") ";
+                terrain->UpdateShader(player.camera);
                 DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
+                rlDisableBackfaceCulling();
                 terrain->DrawGrass(player.camera);
+                rlEnableBackfaceCulling();
             }
         }
     }
