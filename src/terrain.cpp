@@ -93,7 +93,6 @@ void Terrain::DrawGrass(Camera3D &camera)
 Terrain::~Terrain()
 {
     free(vertexData);
-    UnloadModel(terrain);
 }
 
 // Terrain manager
@@ -145,19 +144,6 @@ void TerrainManager::DrawTerrainGrid()
     DrawGrid(10, 50);
 }
 
-// void TerrainManager::updateCords(Vector2 &pos)
-// {
-//     cords.clear();
-//     cords.insert(pos);
-//     cords.insert(Vector2{pos.x, pos.y + 1});
-//     cords.insert(Vector2{pos.x, pos.y - 1});
-//     cords.insert(Vector2{pos.x - 1, pos.y});
-//     cords.insert(Vector2{pos.x + 1, pos.y});
-//     cords.insert(Vector2{pos.x - 1, pos.y + 1});
-//     cords.insert(Vector2{pos.x + 1, pos.y - 1});
-//     cords.insert(Vector2{pos.x + 1, pos.y + 1});
-//     cords.insert(Vector2{pos.x - 1, pos.y - 1});
-// }
 
 void TerrainManager::UpdateCollision()
 {
