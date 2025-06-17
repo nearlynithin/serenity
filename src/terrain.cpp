@@ -68,6 +68,8 @@ void Terrain::setShader()
     Shader ts = ResourceManager::getInstance().getShader("terrainShader");
     terrain.materials[0].shader = ts;
     fogDensityLoc = GetShaderLocation(ts, "fogDensity");
+    // lightDirLoc = GetShaderLocation(ts, "lightDir");
+    // lightColorLoc = GetShaderLocation(ts, "lightColor");
     ambientLoc = GetShaderLocation(ts, "ambient");
     viewPosLoc = GetShaderLocation(ts, "viewPos");
 }
@@ -119,7 +121,7 @@ void TerrainManager::DrawTerrains()
 {
     Player player = Player::getInstance();
     frustum.Extract();
-    std::cout << "[TERRAINS BEING DRAWN]:\n";
+    // std::cout << "[TERRAINS BEING DRAWN]:\n";
     for (auto &[pos, terrain] : terrains)
     {
         if (frustum.AABBoxIn(terrain->getBBox().min, terrain->getBBox().max))
@@ -127,7 +129,7 @@ void TerrainManager::DrawTerrains()
             float distanceSq = Vector3DistanceSqr(player.GetPlayerPosition(), terrain->getPosition());
             if (distanceSq < VIEW_BOX_DISTANCE * VIEW_BOX_DISTANCE)
             {
-                std::cout << "(" << pos.x << "," << pos.y << ") ";
+                // std::cout << "(" << pos.x << "," << pos.y << ") ";
                 terrain->UpdateShader(player.camera);
                 DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
                 // rlDisableBackfaceCulling();
@@ -136,14 +138,13 @@ void TerrainManager::DrawTerrains()
             }
         }
     }
-    std::cout << "\n[END]\n ";
+    // std::cout << "\n[END]\n ";
 }
 
 void TerrainManager::DrawTerrainGrid()
 {
     DrawGrid(10, 50);
 }
-
 
 void TerrainManager::UpdateCollision()
 {

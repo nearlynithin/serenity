@@ -1,9 +1,9 @@
 #include "game/game.hpp"
-#include "game/lights.hpp"
 #include "game/player.hpp"
 #include "game/resource.hpp"
 #include "game/scene.hpp"
 #include "game/terrain.hpp"
+#include "lights.hpp"
 #include "raymath.h"
 #include "rlgl.h"
 #include <iostream>
@@ -25,8 +25,10 @@ bool Game::Initialize()
 
     ResourceLoader::LoadAllTextures();
     ResourceLoader::LoadAllShaders();
+    Scene::getInstance().SetShaders();
     ResourceLoader::LoadAllModels();
     TerrainManager::LoadTerrains();
+    Scene::getInstance().SetLights();
 
     Player::InitPlayer();
 
@@ -73,13 +75,13 @@ void Game::UpdateGame()
     Player::UpdateCamera();
     // TerrainManager::UpdateTerrains();
     TerrainManager::UpdateCollision();
+    Scene::getInstance().UpdateShaders();
 }
 
 void Game::GenerateOutput()
 {
 
     BeginDrawing();
-    Color backg = ColorFromNormalized(Vector4{0.8, 1.0, 0.8, 1.0});
     ClearBackground(backg);
 
     BeginMode3D(Player::camera);

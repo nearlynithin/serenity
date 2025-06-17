@@ -1,7 +1,10 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include "lights.hpp"
 #include "raylib.h"
+#include <unordered_map>
+#include <memory>
 
 class Scene
 {
@@ -16,8 +19,12 @@ class Scene
     Matrix lightViewProj;
     float fogDensity;
     float fogDensityLoc;
+    int ambientLoc;
+    float ambient[4] = {0.1f, 0.1f, 0.1f, 0.1f};
 
   public:
+    static std::unordered_map<std::string, std::unique_ptr<Light>> lights;
+
     static Scene &getInstance()
     {
         static Scene instance;
@@ -27,7 +34,7 @@ class Scene
     void SetModels();
     void SetLights();
     void SetShaders();
-    void UpdateShaders(Camera3D *camera);
+    void UpdateShaders();
     void ScenePrep();
     void DrawScene();
 };

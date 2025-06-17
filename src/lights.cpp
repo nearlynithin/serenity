@@ -1,87 +1,74 @@
-#include "game/lights.hpp"
+#include "lights.hpp"
+#include "raylib.h"
 #include <iostream>
 
-static std::unordered_map<std::string, Light> lights;
-static int lightCounter = 0;
+int Light::lightCounter = 0;
 
-// Creates a light and returns the id of the light
-int CreateLight(const std::string &lightName, int type, Vector3 position, Vector3 target, Color color,
-                float attenuation, Shader shader)
+Light::Light(int type, Vector3 position, Vector3 target, Color color, Shader &lightShader)
 {
     if (lightCounter >= MAX_LIGHTS)
     {
-        std::cerr << "Max number of lights reached! Cannot create more lights.\n";
-        return -1;
+        TraceLog(LOG_ERROR, "Max number of lights exceeded");
     }
 
-    Light light;
-    light.id = lightCounter++;
-    light.enabled = 1;
-    light.type = type;
-    light.position = position;
-    light.target = target;
-    light.color = color;
-    light.attenuation = attenuation;
+    id = lightCounter++;
+    shader = &lightShader;
+    enabled = 1;
+    this->type = type;
+    this->position = position;
+    this->target = target;
+    this->color = color;
+    // attenuation = attenuation;
 
-    // NOTE: Shader parameters names for lights must match the requested ones
-    light.enabledLoc = GetShaderLocation(shader, TextFormat("lights[%i].enabled", light.id));
-    light.typeLoc = GetShaderLocation(shader, TextFormat("lights[%i].type", light.id));
-    light.positionLoc = GetShaderLocation(shader, TextFormat("lights[%i].position", light.id));
-    light.targetLoc = GetShaderLocation(shader, TextFormat("lights[%i].target", light.id));
-    light.colorLoc = GetShaderLocation(shader, TextFormat("lights[%i].color", light.id));
-    light.attenuationLoc = GetShaderLocation(shader, TextFormat("lights[%i].attenuation", light.id));
+    enabledLoc = GetShaderLocation(*shader, TextFormat("lights[%i].enabled", id));
+    typeLoc = GetShaderLocation(*shader, TextFormat("lights[%i].type", id));
+    positionLoc = GetShaderLocation(*shader, TextFormat("lights[%i].position", id));
+    targetLoc = GetShaderLocation(*shader, TextFormat("lights[%i].target", id));
+    colorLoc = GetShaderLocation(*shader, TextFormat("lights[%i].color", id));
+    // attenuationLoc = GetShaderLocation(*shader, TextFormat("lights[%i].attenuation", id));
 
-    lights[lightName] = light;
-
-    UpdateLightValues(shader, light);
-
-    return light.id;
+    UpdateLightShader();
 }
 
-void UpdateLightValues(Shader shader, Light light)
+void Light::UpdateLightShader()
 {
     // Send to shader light enabled state and type
-    SetShaderValue(shader, light.enabledLoc, &light.enabled, SHADER_UNIFORM_INT);
-    SetShaderValue(shader, light.typeLoc, &light.type, SHADER_UNIFORM_INT);
+    SetShaderValue(*shader, enabledLoc, &enabled, SHADER_UNIFORM_INT);
+    SetShaderValue(*shader, typeLoc, &type, SHADER_UNIFORM_INT);
 
     // Send to shader light position values
-    float position[3] = {light.position.x, light.position.y, light.position.z};
-    SetShaderValue(shader, light.positionLoc, position, SHADER_UNIFORM_VEC3);
+    float lightPos[3] = {position.x, position.y, position.z};
+    SetShaderValue(*shader, positionLoc, &lightPos, SHADER_UNIFORM_VEC3);
 
     // Send to shader light target position values
-    float target[3] = {light.target.x, light.target.y, light.target.z};
-    SetShaderValue(shader, light.targetLoc, target, SHADER_UNIFORM_VEC3);
+    float lightTarget[3] = {target.x, target.y, target.z};
+    SetShaderValue(*shader, targetLoc, lightTarget, SHADER_UNIFORM_VEC3);
 
     // Send to shader light color values
-    float color[4] = {(float)light.color.r / (float)255, (float)light.color.g / (float)255,
-                      (float)light.color.b / (float)255, (float)light.color.a / (float)255};
-    SetShaderValue(shader, light.colorLoc, color, SHADER_UNIFORM_VEC4);
+    float lightColor[4] = {(float)color.r / (float)255, (float)color.g / (float)255, (float)color.b / (float)255,
+                           (float)color.a / (float)255};
+    SetShaderValue(*shader, colorLoc, lightColor, SHADER_UNIFORM_VEC4);
 
     // Send to shader Light attenuation value
-    SetShaderValue(shader, light.attenuationLoc, &light.attenuation, SHADER_UNIFORM_FLOAT);
+    // SetShaderValue(*shader, attenuationLoc, &attenuation, SHADER_UNIFORM_FLOAT);
 }
 
-void UpdateLight(Shader shader, const std::string &lightName)
+bool Light::isEnabled()
 {
-    auto it = lights.find(lightName);
-    if (it == lights.end())
-    {
-        std::cerr << "Warning: Tried to update a non-existent light: " << lightName << std::endl;
-        return;
-    }
+    return (enabled == 1) ? true : false;
+}
 
-    Light &light = it->second;
+Vector3 Light::getPosition()
+{
+    return position;
+}
 
-    SetShaderValue(shader, light.enabledLoc, &light.enabled, SHADER_UNIFORM_INT);
-    SetShaderValue(shader, light.typeLoc, &light.type, SHADER_UNIFORM_INT);
+Color Light::getColor()
+{
+    return color;
+}
 
-    float position[3] = {light.position.x, light.position.y, light.position.z};
-    SetShaderValue(shader, light.positionLoc, position, SHADER_UNIFORM_VEC3);
-
-    float target[3] = {light.target.x, light.target.y, light.target.z};
-    SetShaderValue(shader, light.targetLoc, target, SHADER_UNIFORM_VEC3);
-    float color[4] = {(float)light.color.r / (float)255, (float)light.color.g / (float)255,
-                      (float)light.color.b / (float)255, (float)light.color.a / (float)255};
-    SetShaderValue(shader, light.colorLoc, color, SHADER_UNIFORM_VEC4);
-    SetShaderValue(shader, light.attenuationLoc, &light.attenuation, SHADER_UNIFORM_FLOAT);
+void Light::toggle()
+{
+    enabled = !enabled;
 }

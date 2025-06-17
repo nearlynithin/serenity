@@ -21,12 +21,13 @@ void ResourceLoader::LoadAllShaders()
     resourceManager.Loadshader("terrainShader", "assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
     resourceManager.Loadshader("shadowShader", "assets/shaders/shadowmap.vs", "assets/shaders/shadowmap.fs");
     resourceManager.Loadshader("grassShader", "assets/shaders/lighting_instancing.vs", "assets/shaders/lighting.fs");
+    // resourceManager.Loadshader("light", "assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
 }
 
 void ResourceLoader::LoadAllModels()
 {
     auto &resourceManager = ResourceManager::getInstance();
-    resourceManager.Loadmodel("oiiaioooooiai", "assets/cat.glb");
+    // resourceManager.Loadmodel("oiiaioooooiai", "assets/cat.glb");
     resourceManager.Loadmodel("grass", "assets/grass.obj");
     SetTextureFilter(resourceManager.getModel("grass").materials[0].maps[MATERIAL_MAP_DIFFUSE].texture,
                      TEXTURE_FILTER_TRILINEAR);

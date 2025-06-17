@@ -13,7 +13,7 @@
 #define HEIGHT 50.0f
 #define RES_X 80
 #define RES_Y 80
-#define MAX_TERRAIN 10
+#define MAX_TERRAIN 6
 #define HEIGHT_FACTOR 100.0f
 #define NOISE_SCALE 10.0f
 
@@ -33,6 +33,8 @@ class Terrain
     int fogDensityLoc;
     int ambientLoc;
     int viewPosLoc;
+    int lightDirLoc;
+    int lightColorLoc;
     Terrain(float offestx, float offesty);
     virtual ~Terrain();
     Model &getTerrain();
@@ -40,7 +42,7 @@ class Terrain
     void setTexture();
     void setShader();
     BoundingBox &getBBox();
-    void UpdateShader(Camera3D & camera);
+    void UpdateShader(Camera3D &camera);
     void DrawGrass(Camera3D &camera);
 };
 

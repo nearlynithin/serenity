@@ -1,10 +1,10 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "game/lights.hpp"
 #include "game/resource.hpp"
 #include "game/scene.hpp"
 #include "game/terrain.hpp"
+#include "lights.hpp"
 #include "raylib.h"
 #include <memory>
 #include <vector>
@@ -27,6 +27,7 @@ class Game
 
     const int screenWidth;
     const int screenHeight;
+    Color backg = ColorFromNormalized(Vector4{0.8, 1.0, 0.8, 1.0});
     bool mIsRunning;
 };
 
