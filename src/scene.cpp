@@ -26,11 +26,11 @@ void Scene::SetShaders()
 
 void Scene::SetLights()
 {
-    Shader shader = ResourceManager::getInstance().getShader("terrainShader");
-    lights.emplace("yellow", std::make_unique<Light>(LIGHT_POINT, (Vector3){-9, 7, -9}, Vector3Zero(), YELLOW, shader));
-    lights.emplace("red", std::make_unique<Light>(LIGHT_POINT, (Vector3){9, 7, 9}, Vector3Zero(), RED, shader));
-    lights.emplace("green", std::make_unique<Light>(LIGHT_POINT, (Vector3){-9, 7, 9}, Vector3Zero(), GREEN, shader));
-    lights.emplace("blue", std::make_unique<Light>(LIGHT_POINT, (Vector3){9, 7, -9}, Vector3Zero(), BLUE, shader));
+    std::vector<std::string> shaders = {"terrainShader", "grassShader"};
+    lights.emplace("yellow", std::make_unique<Light>(LIGHT_POINT, Vector3{-9, 8, -9}, Vector3Zero(), YELLOW, shaders));
+    lights.emplace("red", std::make_unique<Light>(LIGHT_POINT, Vector3{9, 8, 9}, Vector3Zero(), RED, shaders));
+    lights.emplace("green", std::make_unique<Light>(LIGHT_POINT, Vector3{-9, 8, 9}, Vector3Zero(), GREEN, shaders));
+    lights.emplace("blue", std::make_unique<Light>(LIGHT_POINT, Vector3{9, 8, -9}, Vector3Zero(), BLUE, shaders));
 }
 
 void Scene::UpdateShaders()
@@ -75,7 +75,6 @@ void Scene::DrawScene()
     {
         if (light->isEnabled())
         {
-            std::cout << "IS BEING DRAWN\n";
             DrawSphereEx(light->getPosition(), 1.0f, 8, 8, light->getColor());
         }
     }

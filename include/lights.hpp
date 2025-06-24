@@ -3,39 +3,44 @@
 
 #include "raylib.h"
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #define MAX_LIGHTS 5
 #define LIGHT_DIRECTIONAL 0
 #define LIGHT_POINT 1
 
+struct ShaderUniforms
+{
+    int enabledLoc;
+    int typeLoc;
+    int positionLoc;
+    int targetLoc;
+    int colorLoc;
+    int shininessLoc;
+    int specularStrengthLoc;
+    int metallicFactorLoc;
+};
+
 class Light
 {
   private:
+    // the [shaders + their uniforms] the light affects
+    std::unordered_map<std::string, ShaderUniforms> uniformMap;
     static int lightCounter;
     int id;
     int type;
     int enabled;
+    float shininess = 25.0;
+    float specularStrength = 0.5;
+    float metallicFactor = 0.5;
     Vector3 position;
     Vector3 target;
     Color color;
-    Shader *shader;
     // float attenuation;
 
-    int typeLoc;
-    int enabledLoc;
-    int positionLoc;
-    int targetLoc;
-    int colorLoc;
-    // int attenuationLoc;
-
   public:
-    Light(int type, Vector3 position, Vector3 target, Color color, Shader &lightShader);
-    Light(const Light&) = default;
-    Light(Light&&) = default;
-    Light& operator=(const Light&) = default;
-    Light& operator=(Light&&) = default;
-
-
+    Light(int type, Vector3 position, Vector3 target, Color color, std::vector<std::string> &shaders);
     bool isEnabled();
     Vector3 getPosition();
     Color getColor();

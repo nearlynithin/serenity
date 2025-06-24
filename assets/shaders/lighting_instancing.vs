@@ -4,8 +4,6 @@
 in vec3 vertexPosition;
 in vec2 vertexTexCoord;
 in vec3 vertexNormal;
-//in vec4 vertexColor;      // Not required
-
 in mat4 instanceTransform;
 
 // Input uniform values
@@ -23,36 +21,34 @@ out vec3 fragNormal;
 
 const float PI = 3.14159265358979323846f;
 
-// NOTE: Add here your custom variables
-
 void main()
 {
-
     float scaleX = length(vec3(instanceTransform[0]));
     float scaleY = length(vec3(instanceTransform[1]));
     float scaleZ = length(vec3(instanceTransform[2]));
-
-
+    
     float bend = vertexPosition.y * 20.0;
     float sway_offset = float(gl_InstanceID) * 0.5;
-    float sway = sin(time +  sway_offset) * 0.01 * bend;
-
-    vec3 displaced = vertexPosition + vec3(0.0,0.0,sway);
-
+    float sway = sin(time + sway_offset) * 0.01 * bend;
+    vec3 displaced = vertexPosition + vec3(0.0, 0.0, sway);
+    
     vec3 bladePos = vec3(instanceTransform[3]); // translation from matrix
     vec3 toCamera = normalize(cameraPos - bladePos);
-        // Get the original forward direction of the blade (Z axis of instance)
+    
+    // Get the original forward direction of the blade (Z axis of instance)
     vec3 bladeForward = normalize(vec3(instanceTransform[2]));
-
+    
     // Compute a rotation blend factor (e.g., only some blades face the camera)
     float faceFactor = 0.5; // 0.0 = no face, 1.0 = full billboard
+    
     // Interpolate forward direction between original and camera-facing
     vec3 newForward = normalize(mix(bladeForward, toCamera, faceFactor));
+    
     // Compute new right vector (cross up and forward)
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, newForward));
     up = cross(newForward, right); // recalculate orthogonal up
-
+    
     // Build new orientation matrix
     mat4 facingMat = mat4(
         vec4(right * scaleX, 0.0),
@@ -60,13 +56,22 @@ void main()
         vec4(newForward * scaleZ, 0.0),
         vec4(bladePos, 1.0)
     );
-
-    // Send vertex attributes to fragment shader
-    fragPosition = vec3(facingMat*vec4(displaced, 1.0));
+    
+    // FIXED: Use the same transformation for fragPosition as for gl_Position
+    vec4 worldPos = facingMat * vec4(displaced, 1.0);
+    fragPosition = worldPos.xyz;
+    
     fragTexCoord = vertexTexCoord;
-    //fragColor = vertexColor;
-    fragNormal = normalize(vec3(matNormal*vec4(vertexNormal, 1.0)));
-
-    // Calculate final vertex position, note that we multiply mvp by instanceTransform
-    gl_Position = mvp*facingMat*vec4(displaced, 1.0);
+    
+    // FIXED: Transform normal using the same facing matrix
+    // Extract rotation part of facingMat for normal transformation
+    mat3 normalMatrix = mat3(
+        normalize(right),
+        normalize(up),
+        normalize(newForward)
+    );
+    fragNormal = normalize(normalMatrix * vertexNormal);
+    
+    // Calculate final vertex position
+    gl_Position = mvp * worldPos;
 }
