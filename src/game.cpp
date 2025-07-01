@@ -4,10 +4,10 @@
 #include "game/scene.hpp"
 #include "game/terrain.hpp"
 #include "lights.hpp"
+#include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
 #include <iostream>
-#include <raylib.h>
 
 Game::Game()
   : screenWidth(1280),
@@ -82,7 +82,7 @@ void Game::GenerateOutput()
 {
 
     BeginDrawing();
-    ClearBackground(backg);
+    ClearBackground(BLACK);
 
     BeginMode3D(Player::camera);
     Scene::getInstance().DrawScene();

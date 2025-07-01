@@ -1,16 +1,6 @@
 #pragma once
 #include "raylib.h"
 
-inline bool operator==(const Vector2 &a, const Vector2 &b)
-{
-    return a.x == b.x && a.y == b.y;
-}
-
-inline bool operator!=(const Vector2 &a, const Vector2 &b)
-{
-    return a.x != b.x || a.y != b.y;
-}
-
 namespace std
 {
 template <> struct hash<Vector2>

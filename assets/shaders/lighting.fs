@@ -40,7 +40,8 @@ uniform float metallicFactor;
 
 // Fog parameters
 uniform float fogDensity;
-const vec4 fogColor = vec4(0.8, 1.0, 0.8, 1.0);
+// const vec4 fogColor = vec4(0.8, 1.0, 0.8, 1.0);
+const vec4 fogColor = vec4(0.0,0.0,0.0, 1.0);
 
 vec3 calculateDirectionalLight(Light light, vec3 normal, vec3 viewDir) {
     vec3 lightDir = normalize(light.position - light.target);
@@ -133,7 +134,7 @@ void main() {
     
     float dist = length(viewPos - fragPosition);
     float heightFactor = clamp((fragPosition.y + 10.0) / 20.0, 0.1, 1.0);
-    dist *= 0.02 * heightFactor;
+    dist *= 0.05 * heightFactor;
     
     float fogFactor = 1.0/exp((dist*fogDensity)*(dist*fogDensity));
     fogFactor = clamp(fogFactor, 0.0, 1.0);

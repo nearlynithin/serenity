@@ -31,7 +31,7 @@ class ResourceManager
         std::cout << filepath.c_str();
         textures[textureName] = LoadTexture(filepath.c_str());
 
-        if (!IsTextureReady(textures[textureName]))
+        if (!IsTextureValid(textures[textureName]))
             std::cout << "Not ready " << textureName << "\n";
     }
 
@@ -86,7 +86,7 @@ class ResourceManager
     {
         shaders[shaderName] = LoadShader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 
-        if (!IsShaderReady(shaders[shaderName]))
+        if (!IsShaderValid(shaders[shaderName]))
         {
             std::cerr << "Shader not ready : " << shaderName << "\n";
         }
@@ -106,7 +106,7 @@ class ResourceManager
     void Loadmodel(const std::string &modelName, const std::string &filename)
     {
         models[modelName] = LoadModel(filename.c_str());
-        if (!IsModelReady(models[modelName]))
+        if (!IsModelValid(models[modelName]))
         {
             std::cerr << "Model not ready : " << modelName << "\n";
         }

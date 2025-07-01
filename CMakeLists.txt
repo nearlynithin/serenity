@@ -17,18 +17,14 @@ if(NOT DEFINED PLATFORM)
     set(PLATFORM "Desktop")
 endif()
 
-# Find or fetch raylib
-find_package(raylib QUIET)
-if(NOT raylib_FOUND)
-    include(FetchContent)
-    FetchContent_Declare(
-        raylib
-        GIT_REPOSITORY https://github.com/raysan5/raylib.git
-        GIT_TAG 5.0
-        GIT_SHALLOW TRUE
-    )
-    FetchContent_MakeAvailable(raylib)
+if(MSVC)
+    set(RAYLIB_DIR "${CMAKE_SOURCE_DIR}/raylib-5.5_win64_msvc16")
+else()
+    set(RAYLIB_DIR "${CMAKE_SOURCE_DIR}/raylib-5.5_linux_amd64")
 endif()
+set(RAYLIB_INCLUDE_DIR "${RAYLIB_DIR}/include")
+set(RAYLIB_LIB_DIR "${RAYLIB_DIR}/lib")
+
 
 # Collect source files (exclude any backup or temporary files)
 file(GLOB_RECURSE SOURCES 
@@ -45,42 +41,48 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Include directories
 target_include_directories(${PROJECT_NAME} PRIVATE 
+    ${RAYLIB_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/include 
-    ${CMAKE_SOURCE_DIR}/src
 )
 
-# Link libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+# Link raylib
+target_link_directories(${PROJECT_NAME} PRIVATE ${RAYLIB_LIB_DIR})
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE 
+        raylib 
+        winmm 
+        gdi32 
+        opengl32 
+        shell32
+    )
+    target_compile_definitions(${PROJECT_NAME} PRIVATE RAYLIB_STATIC)
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE raylib m pthread dl GL)
+endif()
+
 
 # Compiler-specific options
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE 
         /W4 
-        /wd4996  # Disable deprecated function warnings
+        /wd4996
+        /std:c++20
     )
-    # For better debugging in Visual Studio
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
+
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         target_compile_options(${PROJECT_NAME} PRIVATE /Od /Zi)
         target_link_options(${PROJECT_NAME} PRIVATE /DEBUG)
     endif()
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE 
-        -Wall -Wextra -Wpedantic
-        -Wno-unused-parameter  # Common in raylib callbacks
+        -Wpedantic
+        -Wno-unused-parameter
     )
-    # Additional flags for debug builds
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         target_compile_options(${PROJECT_NAME} PRIVATE -g -O0)
     elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
         target_compile_options(${PROJECT_NAME} PRIVATE -O3 -DNDEBUG)
-    endif()
-endif()
-
-# Platform-specific linking
-if(UNIX AND NOT APPLE)
-    target_link_libraries(${PROJECT_NAME} PRIVATE m)
-    if(NOT WIN32)
-        target_link_libraries(${PROJECT_NAME} PRIVATE pthread dl)
     endif()
 endif()
 
@@ -102,15 +104,13 @@ endif()
 
 # Copy assets to build directory
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
-    # Create a custom target to copy assets
     add_custom_target(copy_assets ALL
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets
         COMMENT "Copying assets to build directory"
     )
     add_dependencies(${PROJECT_NAME} copy_assets)
-    
-    # For better incremental builds, only copy if assets have changed
+
     file(GLOB_RECURSE ASSET_FILES "${CMAKE_SOURCE_DIR}/assets/*")
     foreach(ASSET_FILE ${ASSET_FILES})
         file(RELATIVE_PATH REL_PATH ${CMAKE_SOURCE_DIR}/assets ${ASSET_FILE})
@@ -118,27 +118,18 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
     endforeach()
 endif()
 
-# Print build information
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "Platform: ${PLATFORM}")
-message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
-if(raylib_FOUND)
-    message(STATUS "Using system raylib")
-else()
-    message(STATUS "Using fetched raylib")
-endif()
-
-# Optional: Set working directory for Visual Studio
+# Visual Studio working directory
 if(MSVC)
     set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif()
 
-# Optional: Create install target
-install(TARGETS ${PROJECT_NAME} 
-    RUNTIME DESTINATION bin
-)
+# Install target
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets 
-        DESTINATION bin
-    )
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION bin)
 endif()
+
+# Message
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Platform: ${PLATFORM}")
+message(STATUS "Using local raylib from ${RAYLIB_DIR}")
