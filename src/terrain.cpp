@@ -42,7 +42,7 @@ Terrain::Terrain(float offsetx, float offsety)
     bbox.min = Vector3Add(bbox.min, position);
     bbox.max = Vector3Add(bbox.max, position);
     terrain.transform = MatrixTranslate(position.x, position.y, position.z);
-    grass.InitGrass(offsetx, offsety, NOISE_SCALE, HEIGHT_FACTOR, WIDTH, HEIGHT, terrain.meshes[0]);
+    grass.InitGrass(offsetx, offsety, NOISE_SCALE, HEIGHT_FACTOR, WIDTH, HEIGHT);
     setTexture();
     setShader();
 }
@@ -132,6 +132,7 @@ void TerrainManager::DrawTerrains()
                 // std::cout << "(" << pos.x << "," << pos.y << ") ";
                 terrain->UpdateShader(player.camera);
                 DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
+                // DrawBoundingBox(terrain->getBBox(), GREEN);
                 // rlDisableBackfaceCulling();
                 terrain->DrawGrass(player.camera);
                 // rlEnableBackfaceCulling();

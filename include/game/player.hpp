@@ -6,7 +6,7 @@
 #define VIEW_BOX_WIDTH 40
 #define VIEW_BOX_HEIGHT 30
 #define VIEW_BOX_LENGTH 75
-#define VIEW_BOX_DISTANCE 75.0f
+#define VIEW_BOX_DISTANCE 50.0f
 
 class Player
 {

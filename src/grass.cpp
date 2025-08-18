@@ -2,32 +2,24 @@
 #include "game/resource.hpp"
 #include "perlin.hpp"
 #include "raylib.h"
-#include <iostream>
-#include <string.h>
 
-void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightFactor, float width, float height,
-                      Mesh &mesh)
+void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightFactor, float width, float height)
 {
     grass = ResourceManager::getInstance().getModel("grass");
     transforms = (Matrix *)RL_CALLOC(MAX_INSTANCES, sizeof(Matrix));
 
-    const int gridSize = 200;
-    const float stepX = width / (float)(gridSize - 1);
-    const float stepZ = height / (float)(gridSize - 1);
+    const int stepSize = 1;
 
     int instanceCount = 0;
-    for (int z = 0; z < gridSize && instanceCount < MAX_INSTANCES; z++)
+    for (int z = 0; z < height; z += stepSize)
     {
-        for (int x = 0; x < gridSize && instanceCount < MAX_INSTANCES; x++)
+        for (int x = 0; x < width; x += stepSize)
         {
-            if (((float)GetRandomValue(0, 100) / 100.0f) > 0.75f)
-                continue;
+            float jitterX = ((float)GetRandomValue(-50, 50) / 100.0f) * x;
+            float jitterZ = ((float)GetRandomValue(-50, 50) / 100.0f) * z;
 
-            float jitterX = ((float)GetRandomValue(-50, 50) / 100.0f) * stepX;
-            float jitterZ = ((float)GetRandomValue(-50, 50) / 100.0f) * stepZ;
-
-            float worldX = x * stepX - width / 2.0f + jitterX;
-            float worldZ = z * stepZ - height / 2.0f + jitterZ;
+            float worldX = x - width / 2.0f + jitterX;
+            float worldZ = z - height / 2.0f + jitterZ;
 
             float scaledX = worldX * noise + offset_x * 10.0f;
             float scaledZ = worldZ * noise + offset_y * 10.0f;

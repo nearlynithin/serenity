@@ -9,12 +9,12 @@
 #include <unordered_set>
 #include <vector>
 
-#define WIDTH 50.0f
-#define HEIGHT 50.0f
-#define RES_X 80
-#define RES_Y 80
-#define MAX_TERRAIN 6
-#define HEIGHT_FACTOR 100.0f
+#define WIDTH 20.0f
+#define HEIGHT 20.0f
+#define RES_X 20
+#define RES_Y 20
+#define MAX_TERRAIN 20
+#define HEIGHT_FACTOR 85.0f
 #define NOISE_SCALE 10.0f
 
 class Terrain
