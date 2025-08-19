@@ -21,6 +21,8 @@ void ResourceLoader::LoadAllShaders()
     resourceManager.Loadshader("terrainShader", "assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
     resourceManager.Loadshader("shadowShader", "assets/shaders/shadowmap.vs", "assets/shaders/shadowmap.fs");
     resourceManager.Loadshader("grassShader", "assets/shaders/lighting_instancing.vs", "assets/shaders/lighting.fs");
+    resourceManager.Loadshader("skyboxShader", "assets/shaders/skybox.vs", "assets/shaders/skybox.fs");
+    resourceManager.Loadshader("cubemapShader", "assets/shaders/cubemap.vs", "assets/shaders/cubemap.fs");
     // resourceManager.Loadshader("light", "assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
 }
 
@@ -31,4 +33,5 @@ void ResourceLoader::LoadAllModels()
     resourceManager.Loadmodel("grass", "assets/grass.obj");
     SetTextureFilter(resourceManager.getModel("grass").materials[0].maps[MATERIAL_MAP_DIFFUSE].texture,
                      TEXTURE_FILTER_TRILINEAR);
+    resourceManager.LoadSkyboxModel("skybox", 1.0f, 1.0f, 1.0f);
 }

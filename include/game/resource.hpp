@@ -112,6 +112,15 @@ class ResourceManager
         }
     }
 
+    void LoadSkyboxModel(const std::string &modelName, float width, float height, float length)
+    {
+        models[modelName] = LoadModelFromMesh(GenMeshCube(width, height, length));
+        if (!IsModelValid(models[modelName]))
+        {
+            std::cerr << "skybox not ready\n";
+        }
+    }
+
     Model &getModel(const std::string &modelName)
     {
         auto it = models.find(modelName);

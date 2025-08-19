@@ -8,12 +8,12 @@ void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightF
     grass = ResourceManager::getInstance().getModel("grass");
     transforms = (Matrix *)RL_CALLOC(MAX_INSTANCES, sizeof(Matrix));
 
-    const int stepSize = 1;
+    const float stepSize = 0.5;
 
     int instanceCount = 0;
-    for (int z = 0; z < height; z += stepSize)
+    for (float z = 0; z < height; z += stepSize)
     {
-        for (int x = 0; x < width; x += stepSize)
+        for (float x = 0; x < width; x += stepSize)
         {
             float jitterX = ((float)GetRandomValue(-50, 50) / 100.0f) * x;
             float jitterZ = ((float)GetRandomValue(-50, 50) / 100.0f) * z;

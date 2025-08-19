@@ -1,5 +1,4 @@
 #include "game/scene.hpp"
-#include "game/grass.hpp"
 #include "game/player.hpp"
 #include "game/resource.hpp"
 #include "game/terrain.hpp"
@@ -11,17 +10,32 @@ std::unordered_map<std::string, std::unique_ptr<Light>> Scene::lights;
 
 void Scene::SetModels()
 {
-    // Model uia = ResourceManager::getInstance().getModel("oiiaioooooiai");
-    // Shader shadowShader = ResourceManager::getInstance().getShader("shadowShader");
-    // uia.materials[0].shader = shadowShader;
 }
 
 void Scene::SetShaders()
 {
-    Shader shader = ResourceManager::getInstance().getShader("terrainShader");
+    // Terrain Shaders
+    auto rm = ResourceManager::getInstance();
+    Shader shader = rm.getShader("terrainShader");
     shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
     ambientLoc = GetShaderLocation(shader, "ambient");
     SetShaderValue(shader, ambientLoc, &ambient, SHADER_UNIFORM_VEC4);
+
+    // Skybox Shaders
+    Model skybox = rm.getModel("skybox");
+    Shader skyboxShader = rm.getShader("skyboxShader");
+    Shader cubemapShader = rm.getShader("cubemapShader");
+    Image img = LoadImage("assets/skybox.png");
+    const int mtrCubemap = MATERIAL_MAP_CUBEMAP;
+    const int userHdr = 0;
+    const int eqRect = 0;
+    SetShaderValue(skyboxShader, GetShaderLocation(skyboxShader, "environmentMap"), &mtrCubemap, SHADER_UNIFORM_INT);
+    SetShaderValue(skyboxShader, GetShaderLocation(skyboxShader, "doGamma"), &userHdr, SHADER_UNIFORM_INT);
+    SetShaderValue(skyboxShader, GetShaderLocation(skyboxShader, "vflipped"), &userHdr, SHADER_UNIFORM_INT);
+    SetShaderValue(cubemapShader, GetShaderLocation(cubemapShader, "equirectangularMap"), &eqRect, SHADER_UNIFORM_INT);
+    skybox.materials[0].maps[MATERIAL_MAP_CUBEMAP].texture = LoadTextureCubemap(img, CUBEMAP_LAYOUT_AUTO_DETECT);
+    skybox.materials[0].shader = skyboxShader;
+    UnloadImage(img);
 }
 
 void Scene::SetLights()
@@ -64,8 +78,16 @@ void Scene::UpdateShaders()
 
 void Scene::DrawScene()
 {
+    auto &rm = ResourceManager::getInstance();
+    BeginShaderMode(rm.getShader("terrainShader"));
 
-    BeginShaderMode(ResourceManager::getInstance().getShader("terrainShader"));
+    // draw skybox
+    rlDisableBackfaceCulling();
+    rlDisableDepthMask();
+    DrawModel(rm.getModel("skybox"), Vector3{0, 0, 0}, 1.0f, WHITE);
+    rlEnableBackfaceCulling();
+    rlEnableDepthMask();
+
     TerrainManager::DrawTerrains();
     DrawCube(Vector3Zero(), 10, 20, 10, GRAY);
     DrawCubeWires(Vector3Zero(), 10, 20, 10, WHITE);

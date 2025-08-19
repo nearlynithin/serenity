@@ -25,9 +25,9 @@ bool Game::Initialize()
 
     ResourceLoader::LoadAllTextures();
     ResourceLoader::LoadAllShaders();
-    Scene::getInstance().SetShaders();
     ResourceLoader::LoadAllModels();
     TerrainManager::LoadTerrains();
+    Scene::getInstance().SetShaders();
     Scene::getInstance().SetLights();
 
     Player::InitPlayer();
