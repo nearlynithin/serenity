@@ -1,30 +1,19 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "lights.hpp"
 #include "raylib.h"
-#include <unordered_map>
+#include "renderContext.hpp"
+#include "shader.hpp"
 #include <memory>
+#include <unordered_map>
 
 class Scene
 {
   private:
-    Camera3D lightCam;
-    Vector3 lightDir;
-    int lightDirLoc;
-    int lightVPLoc;
-    int shadowMapLoc;
-    Matrix lightView;
-    Matrix lightProj;
-    Matrix lightViewProj;
-    float fogDensity;
-    float fogDensityLoc;
-    int ambientLoc;
-    float ambient[4] = {0.1f, 0.1f, 0.1f, 0.1f};
+    SceneContext sceneCtx;
+    shadowMapData shadowData;
 
   public:
-    static std::unordered_map<std::string, std::unique_ptr<Light>> lights;
-
     static Scene &getInstance()
     {
         static Scene instance;
@@ -37,6 +26,10 @@ class Scene
     void UpdateShaders();
     void ScenePrep();
     void DrawScene();
+    void InitShadowMapping();
+    void RenderShadowMap();
+    void UpdateLightSpaceMatrix();
+    void SetTerrainShaderMatrices();
 };
 
 #endif

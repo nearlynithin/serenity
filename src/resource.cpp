@@ -19,7 +19,7 @@ void ResourceLoader::LoadAllShaders()
 {
     auto &resourceManager = ResourceManager::getInstance();
     resourceManager.Loadshader("terrainShader", "assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
-    resourceManager.Loadshader("shadowShader", "assets/shaders/shadowmap.vs", "assets/shaders/shadowmap.fs");
+    resourceManager.Loadshader("shadowMapShader", "assets/shaders/shadowmap.vs", "assets/shaders/shadowmap.fs");
     resourceManager.Loadshader("grassShader", "assets/shaders/lighting_instancing.vs", "assets/shaders/lighting.fs");
     resourceManager.Loadshader("skyboxShader", "assets/shaders/skybox.vs", "assets/shaders/skybox.fs");
     resourceManager.Loadshader("cubemapShader", "assets/shaders/cubemap.vs", "assets/shaders/cubemap.fs");
