@@ -3,6 +3,7 @@
 
 #include "game/grass.hpp"
 #include "raylib.h"
+#include "renderContext.hpp"
 #include "rlFrustum.h"
 #include <memory>
 #include <unordered_map>
@@ -30,20 +31,15 @@ class Terrain
     Grass grass;
 
   public:
-    int fogDensityLoc;
-    int ambientLoc;
-    int viewPosLoc;
-    int lightDirLoc;
-    int lightColorLoc;
     Terrain(float offestx, float offesty);
     virtual ~Terrain();
     Model &getTerrain();
+    Grass &getGrass();
     Vector3 getPosition();
     void setTexture();
-    void setShader();
     BoundingBox &getBBox();
-    void UpdateShader(Camera3D &camera);
-    void DrawGrass(Camera3D &camera);
+    void UpdateShader(Camera3D &camera, SceneContext *sceneCtx);
+    void DrawGrass(Camera3D &camera, SceneContext *sceneCtx);
 };
 
 class TerrainManager
@@ -54,15 +50,14 @@ class TerrainManager
     static Vector2 currentTerrain;
     static RayCollision collision;
     static Ray playerMarker;
-    static Grass grass;
     static RLFrustum frustum;
+    float ambient[4] = {0.2f, 0.2f, 0.2f, 1.0f};
 
   public:
     static void LoadTerrains();
-    static void DrawTerrains();
+    static void setShaders(SceneContext *sceneCtx);
+    static void DrawTerrains(SceneContext *sceneCtx, bool shadowPass);
     static void DrawTerrainGrid();
-    // static void updateCords(Vector2 &pos);
-    // static void UpdateTerrains();
     static void UpdateCollision();
 };
 

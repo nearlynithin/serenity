@@ -1,14 +1,16 @@
 #include "game/grass.hpp"
 #include "game/resource.hpp"
+#include "game/shader.hpp"
 #include "perlin.hpp"
 #include "raylib.h"
 
 void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightFactor, float width, float height)
 {
-    grass = ResourceManager::getInstance().getModel("grass");
+    auto rm = ResourceManager::getInstance();
+    grass = rm.getModel("grass");
     transforms = (Matrix *)RL_CALLOC(MAX_INSTANCES, sizeof(Matrix));
 
-    const float stepSize = 0.5;
+    const float stepSize = 0.3;
 
     int instanceCount = 0;
     for (float z = 0; z < height; z += stepSize)
@@ -36,43 +38,33 @@ void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightF
             Matrix matScale = MatrixScale(4, scaleY, 4);
             Matrix matTrans = MatrixTranslate(pos.x, pos.y, pos.z);
 
-            // Final transform: Scale → Rotate → Translate
-            Matrix mat = MatrixMultiply(matRot, matScale);
+            Matrix mat = MatrixMultiply(matScale, matRot);
             transforms[instanceCount++] = MatrixMultiply(mat, matTrans);
         }
     }
-
-    Shader shader = ResourceManager::getInstance().getShader("grassShader");
-    shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(shader, "mvp");
-    shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
-    shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocationAttrib(shader, "instanceTransform");
-    timeLoc = GetShaderLocation(shader, "time");
-    camPosLoc = GetShaderLocation(shader, "cameraPos");
-    camTargetLoc = GetShaderLocation(shader, "cameraTarget");
-    fogDensityLoc = GetShaderLocation(shader, "fogDensity");
-    ambientLoc = GetShaderLocation(shader, "ambient");
     matInstances = grass.materials[0];
-    matInstances.shader = shader;
+    totalInstances = instanceCount;
 }
 
-void Grass::Animate()
+void Grass::Animate(gfx::Shader *grassShader)
 {
-    Shader grassShader = ResourceManager::getInstance().getShader("grassShader");
     float time = GetTime();
-    SetShaderValue(grassShader, timeLoc, &time, SHADER_UNIFORM_FLOAT);
+    grassShader->SetShaderValue("time", &time, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(grassShader->getShader(), grassShader->getUniformLoc("time"), &time, SHADER_UNIFORM_FLOAT);
 }
 
-void Grass::DrawGrass(Camera3D &camera)
+void Grass::DrawGrass(Camera3D &camera, SceneContext *sceneCtx)
 {
-    Animate();
-    Shader grassShader = ResourceManager::getInstance().getShader("grassShader");
-    SetShaderValue(grassShader, camPosLoc, &camera.position, SHADER_UNIFORM_VEC3);
-    SetShaderValue(grassShader, grassShader.locs[SHADER_LOC_VECTOR_VIEW], &camera.position, SHADER_UNIFORM_VEC3);
-    SetShaderValue(grassShader, camTargetLoc, &camera.target, SHADER_UNIFORM_VEC3);
-    SetShaderValue(grassShader, ambientLoc, &ambient, SHADER_UNIFORM_VEC4);
-    SetShaderValue(grassShader, fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
-
-    DrawMeshInstanced(grass.meshes[0], matInstances, transforms, MAX_INSTANCES);
+    Animate(sceneCtx->grassShader);
+    sceneCtx->grassShader->getShader().locs[SHADER_LOC_MATRIX_MODEL] =
+        GetShaderLocationAttrib(sceneCtx->grassShader->getShader(), "instanceTransform");
+    sceneCtx->grassShader->SetShaderValue("camPos", &camera.position, SHADER_UNIFORM_VEC3);
+    sceneCtx->grassShader->SetShaderValue("viewPos", &camera.position, SHADER_UNIFORM_VEC3);
+    sceneCtx->grassShader->SetShaderValue("camTarget", &camera.target, SHADER_UNIFORM_VEC3);
+    sceneCtx->grassShader->SetShaderValue("ambient", sceneCtx->ambient, SHADER_UNIFORM_VEC4);
+    // SetShaderValue(grassShader->getShader(), fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
+    matInstances.shader = sceneCtx->grassShader->getShader();
+    DrawMeshInstanced(grass.meshes[0], matInstances, transforms, totalInstances);
 }
 
 void Grass::UnloadGrass()

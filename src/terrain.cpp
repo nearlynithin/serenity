@@ -15,7 +15,6 @@ Vector2 TerrainManager::currentTerrain;
 std::unordered_set<Vector2> TerrainManager::cords;
 RayCollision TerrainManager::collision;
 Ray TerrainManager::playerMarker;
-Grass TerrainManager::grass;
 RLFrustum TerrainManager::frustum;
 
 Terrain::Terrain(float offsetx, float offsety)
@@ -44,12 +43,16 @@ Terrain::Terrain(float offsetx, float offsety)
     terrain.transform = MatrixTranslate(position.x, position.y, position.z);
     grass.InitGrass(offsetx, offsety, NOISE_SCALE, HEIGHT_FACTOR, WIDTH, HEIGHT);
     setTexture();
-    setShader();
 }
 Model &Terrain::getTerrain()
 {
     return terrain;
 }
+Grass &Terrain::getGrass()
+{
+    return grass;
+}
+
 Vector3 Terrain::getPosition()
 {
     return position;
@@ -63,15 +66,26 @@ void Terrain::setTexture()
     SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
 }
 
-void Terrain::setShader()
+void TerrainManager::setShaders(SceneContext *sceneCtx)
 {
-    Shader ts = ResourceManager::getInstance().getShader("terrainShader");
-    terrain.materials[0].shader = ts;
-    fogDensityLoc = GetShaderLocation(ts, "fogDensity");
-    // lightDirLoc = GetShaderLocation(ts, "lightDir");
-    // lightColorLoc = GetShaderLocation(ts, "lightColor");
-    ambientLoc = GetShaderLocation(ts, "ambient");
-    viewPosLoc = GetShaderLocation(ts, "viewPos");
+    auto rm = ResourceManager::getInstance();
+    sceneCtx->terrainShader = rm.getShader("terrainShader");
+    sceneCtx->terrainShader->addUniform("viewPos");
+    sceneCtx->terrainShader->addUniform("lightDir");
+    sceneCtx->terrainShader->addUniform("lightColor");
+    sceneCtx->terrainShader->addUniform("ambient");
+    int ambientLoc = sceneCtx->terrainShader->addUniform("ambient");
+    SetShaderValue(sceneCtx->terrainShader->getShader(), ambientLoc, &sceneCtx->ambient, SHADER_UNIFORM_VEC4);
+
+    // grass Shaders
+    sceneCtx->grassShader = rm.getShader("grassShader");
+    sceneCtx->grassShader->addUniform("mvp");
+    sceneCtx->grassShader->addUniform("viewPos");
+    sceneCtx->grassShader->addUniform("time");
+    sceneCtx->grassShader->addUniform("camPos");
+    sceneCtx->grassShader->addUniform("camTarget");
+    sceneCtx->grassShader->addUniform("fogDensity");
+    sceneCtx->grassShader->addUniform("ambient");
 }
 
 BoundingBox &Terrain::getBBox()
@@ -79,17 +93,22 @@ BoundingBox &Terrain::getBBox()
     return bbox;
 }
 
-void Terrain::UpdateShader(Camera3D &camera)
+void Terrain::UpdateShader(Camera3D &camera, SceneContext *sceneCtx)
 {
-    Shader ts = ResourceManager::getInstance().getShader("terrainShader");
-    SetShaderValue(ts, fogDensityLoc, &grass.fogDensity, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ts, ambientLoc, &grass.ambient, SHADER_UNIFORM_VEC4);
-    SetShaderValue(ts, viewPosLoc, &camera.position, SHADER_UNIFORM_VEC3);
+    SetShaderValue(sceneCtx->terrainShader->getShader(), sceneCtx->terrainShader->getUniformLoc("lightDir"),
+                   &sceneCtx->lightDir, SHADER_UNIFORM_VEC3);
+
+    SetShaderValue(sceneCtx->terrainShader->getShader(), sceneCtx->terrainShader->getUniformLoc("lightColor"),
+                   &sceneCtx->lightDir, SHADER_UNIFORM_VEC3);
+    SetShaderValue(sceneCtx->terrainShader->getShader(), sceneCtx->terrainShader->getUniformLoc("lightColor"),
+                   &sceneCtx->lightColor, SHADER_UNIFORM_VEC3);
+    SetShaderValue(sceneCtx->terrainShader->getShader(), sceneCtx->terrainShader->getUniformLoc("viewPos"),
+                   &camera.position, SHADER_UNIFORM_VEC3);
 }
 
-void Terrain::DrawGrass(Camera3D &camera)
+void Terrain::DrawGrass(Camera3D &camera, SceneContext *sceneCtx)
 {
-    grass.DrawGrass(camera);
+    grass.DrawGrass(camera, sceneCtx);
 }
 
 Terrain::~Terrain()
@@ -114,10 +133,9 @@ void TerrainManager::LoadTerrains()
     currentTerrain = Vector2{0, 0};
     Vector3 markerpos = Vector3Add(Vector3{0.0f, 100.0f, 0.0f}, Player::getInstance().GetPlayerPosition());
     playerMarker = Ray{markerpos, Vector3{0.0f, -1.0f, 0.0f}};
-    // updateCords(currentTerrain);
 }
 
-void TerrainManager::DrawTerrains()
+void TerrainManager::DrawTerrains(SceneContext *sceneCtx, bool shadowPass)
 {
     Player player = Player::getInstance();
     frustum.Extract();
@@ -130,12 +148,20 @@ void TerrainManager::DrawTerrains()
             if (distanceSq < VIEW_BOX_DISTANCE * VIEW_BOX_DISTANCE)
             {
                 // std::cout << "(" << pos.x << "," << pos.y << ") ";
-                terrain->UpdateShader(player.camera);
-                DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
+                if (shadowPass)
+                {
+                    DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
+                    rlDisableBackfaceCulling();
+                    terrain->DrawGrass(player.camera, sceneCtx);
+                    rlEnableBackfaceCulling();
+                }
+                else
+                {
+                    terrain->getTerrain().materials[0].shader = sceneCtx->terrainShader->getShader();
+                    DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
+                    terrain->DrawGrass(player.camera, sceneCtx);
+                }
                 // DrawBoundingBox(terrain->getBBox(), GREEN);
-                // rlDisableBackfaceCulling();
-                terrain->DrawGrass(player.camera);
-                // rlEnableBackfaceCulling();
             }
         }
     }
