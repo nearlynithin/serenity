@@ -3,7 +3,6 @@
 #include "game/resource.hpp"
 #include "game/scene.hpp"
 #include "game/terrain.hpp"
-#include "lights.hpp"
 #include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
@@ -27,6 +26,7 @@ bool Game::Initialize()
     ResourceLoader::LoadAllShaders();
     ResourceLoader::LoadAllModels();
     TerrainManager::LoadTerrains();
+    Scene::getInstance().ScenePrep();
     Scene::getInstance().SetShaders();
     Scene::getInstance().SetLights();
 
@@ -81,12 +81,7 @@ void Game::UpdateGame()
 void Game::GenerateOutput()
 {
 
-    BeginDrawing();
-    ClearBackground(BLACK);
-
-    BeginMode3D(Player::camera);
     Scene::getInstance().DrawScene();
-    EndMode3D();
 
     DrawFPS(20, 20);
 

@@ -78,18 +78,18 @@ void Player::UpdateCamera()
 
     pitch = Clamp(pitch, -PI / 2 + 0.1f, PI / 2 - 0.1f);
 
-    float distance = 10.0f;
+    float distance = 5.0f;
     Vector3 offset = {cosf(pitch) * sinf(yaw) * distance, sinf(pitch) * distance + 2.0f,
                       cosf(pitch) * cosf(yaw) * distance};
 
-    camera.target = Vector3Add(playerPos, Vector3{0.0f, 0.75f, 0.0f});
+    camera.target = playerPos;
     camera.position = Vector3Add(playerPos, offset);
     camera.up = {0.0f, 1.0f, 0.0f};
 
     Vector3 move = {0};
     Vector3 rot = {0.0f, 0.0f, 0.0f};
-    UpdateCameraPro(&Player::camera, move, rot, -20.0f);
-    // UpdateCameraPro(&Player::camera, move, rot, 100.0f);
+    // UpdateCameraPro(&Player::camera, move, rot, -20.0f);
+    UpdateCameraPro(&Player::camera, move, rot, 2.0f);
 }
 
 void Player::setPlayerPosition(Vector3 pos)

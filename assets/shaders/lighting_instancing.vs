@@ -10,8 +10,8 @@ in mat4 instanceTransform;
 uniform mat4 mvp;
 uniform mat4 matNormal;
 uniform float time;
-uniform vec3 cameraPos;
-uniform vec3 cameraTarget;
+uniform vec3 camPos;
+uniform vec3 camTarget;
 
 // Output vertex attributes (to fragment shader)
 out vec3 fragPosition;
@@ -33,13 +33,13 @@ void main()
     vec3 displaced = vertexPosition + vec3(0.0, 0.0, sway);
 
     vec3 bladePos = vec3(instanceTransform[3]); // translation from matrix
-    vec3 toCamera = normalize(cameraPos - bladePos);
+    vec3 toCamera = normalize(camPos - bladePos);
 
     // Get the original forward direction of the blade (Z axis of instance)
     vec3 bladeForward = normalize(vec3(instanceTransform[2]));
 
     // Compute a rotation blend factor (e.g., only some blades face the camera)
-    float faceFactor = 0.5; // 0.0 = no face, 1.0 = full billboard
+    float faceFactor = 0.5;
 
     // Interpolate forward direction between original and camera-facing
     vec3 newForward = normalize(mix(bladeForward, toCamera, faceFactor));

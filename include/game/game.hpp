@@ -4,7 +4,6 @@
 #include "game/resource.hpp"
 #include "game/scene.hpp"
 #include "game/terrain.hpp"
-#include "lights.hpp"
 #include "raylib.h"
 #include <memory>
 #include <vector>
