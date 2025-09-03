@@ -3,19 +3,21 @@
 
 #include "raylib.h"
 #include "rlgl.h"
+#include "shader.hpp"
 #include <iostream>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
 // Some macros related to shaders
-#define SHADOWMAP_RESOLUTION 512
+#define SHADOWMAP_RESOLUTION 1024
 #define SHADOW_MAP_SLOT 1
 
 class ResourceManager
 {
   private:
     std::unordered_map<std::string, Texture2D> textures;
-    std::unordered_map<std::string, Shader> shaders;
+    std::unordered_map<std::string, std::shared_ptr<gfx::Shader>> shaders;
     std::unordered_map<std::string, Model> models;
 
   public:
@@ -84,22 +86,24 @@ class ResourceManager
     void Loadshader(const std::string &shaderName, const std::string &vertexShaderPath,
                     const std::string &fragmentShaderPath)
     {
-        shaders[shaderName] = LoadShader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+        auto [it, inserted] =
+            shaders.emplace(shaderName, std::make_shared<gfx::Shader>(shaderName, vertexShaderPath.c_str(),
+                                                                      fragmentShaderPath.c_str()));
 
-        if (!IsShaderValid(shaders[shaderName]))
+        if (!IsShaderValid(it->second->getShader()))
         {
             std::cerr << "Shader not ready : " << shaderName << "\n";
         }
     }
 
-    Shader &getShader(const std::string &name)
+    gfx::Shader *getShader(const std::string &name)
     {
         auto it = shaders.find(name);
         if (it == shaders.end())
         {
             std::cout << "Shader not found : " << name << "\n";
         }
-        return it->second;
+        return it->second.get();
     }
 
     // Model Manager
@@ -148,7 +152,8 @@ class ResourceManager
         {
             for (auto &shader : shaders)
             {
-                UnloadShader(shader.second);
+                if (!shader.first.empty())
+                    UnloadShader(shader.second->getShader());
             }
             shaders.clear();
             std::cout << "Shaders unloaded\n";
