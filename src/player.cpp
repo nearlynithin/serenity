@@ -17,13 +17,13 @@ void Player::InitPlayer()
     player.speed = 5.0f;
     Mesh mesh = GenMeshCylinder(1, player.height, 8);
     player.model = LoadModelFromMesh(mesh);
-    Player::camera = {
-        .position = {10.0f, 10.0f, 10.0f},
-        .target = {0.0f, 0.0f, 0.0f},
-        .up = {0.0f, 1.0f, 0.0f},
-        .fovy = 70.0f,
-        .projection = CAMERA_PERSPECTIVE,
-    };
+    Player::camera = {0};
+    camera.position = {10.0f, 10.0f, 10.0f};
+    camera.target = {0.0f, 0.0f, 0.0f};
+    camera.up = {0.0f, 1.0f, 0.0f};
+    camera.fovy = 70.0f;
+    camera.projection = CAMERA_PERSPECTIVE;
+
     Player::mouseSensitivity = 0.003f;
     Player::yaw = 0.0f;
     Player::pitch = 0.0f;
