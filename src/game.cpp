@@ -76,6 +76,7 @@ void Game::UpdateGame()
     // TerrainManager::UpdateTerrains();
     TerrainManager::UpdateCollision();
     Scene::getInstance().UpdateShaders();
+    Player::UpdatePlayer();
 }
 
 void Game::GenerateOutput()

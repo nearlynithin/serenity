@@ -120,6 +120,7 @@ void Scene::RenderShadowMap()
     BeginMode3D(sceneCtx.lightCam);
     shadowData.lightView = rlGetMatrixModelview();
     shadowData.lightProj = rlGetMatrixProjection();
+    Player::DrawPlayer();
     TerrainManager::DrawTerrains(&sceneCtx, true);
     DrawCube(Vector3Zero(), 10, 40, 10, RAYWHITE);
     EndMode3D();
