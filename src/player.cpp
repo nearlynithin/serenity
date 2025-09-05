@@ -9,6 +9,8 @@ Camera3D Player::camera;
 float Player::mouseSensitivity;
 float Player::yaw;
 float Player::pitch;
+Camera3D Player::targetCamera;
+int Player::cameraLerpFactor = 15;
 
 void Player::InitPlayer()
 {
@@ -23,7 +25,7 @@ void Player::InitPlayer()
     camera.up = {0.0f, 1.0f, 0.0f};
     camera.fovy = 70.0f;
     camera.projection = CAMERA_PERSPECTIVE;
-
+    player.moveLerpFactor = 4;
     Player::mouseSensitivity = 0.003f;
     Player::yaw = 0.0f;
     Player::pitch = 0.0f;
@@ -38,8 +40,12 @@ Vector3 Player::GetPlayerPosition()
 void Player::PlayerMoves()
 {
     Player &player = Player::getInstance();
-
     float delta = GetFrameTime();
+    player.speed = (IsKeyDown(KEY_LEFT_SHIFT)) ? 15.0f : 5.0f;
+
+    // reset at the start of movement handling
+    player.targetMoveDir = {0.0f, 0.0f, 0.0f};
+
     Vector3 forward = {sinf(Player::yaw), 0.0f, cosf(Player::yaw)};
     Vector3 right = {cosf(Player::yaw), 0.0f, -sinf(Player::yaw)};
 
@@ -47,20 +53,30 @@ void Player::PlayerMoves()
     right = Vector3Normalize(right);
 
     if (IsKeyDown(KEY_W))
-        player.moveDir = Vector3Subtract(player.moveDir, forward);
+        player.targetMoveDir = Vector3Subtract(player.targetMoveDir, forward);
     if (IsKeyDown(KEY_A))
-        player.moveDir = Vector3Subtract(player.moveDir, right);
+        player.targetMoveDir = Vector3Subtract(player.targetMoveDir, right);
     if (IsKeyDown(KEY_S))
-        player.moveDir = Vector3Add(player.moveDir, forward);
+        player.targetMoveDir = Vector3Add(player.targetMoveDir, forward);
     if (IsKeyDown(KEY_D))
-        player.moveDir = Vector3Add(player.moveDir, right);
-    if (Vector3Length(player.moveDir) > 0.001f)
-    {
-        player.moveDir = Vector3Normalize(player.moveDir);
-        player.position = Vector3Add(player.position, Vector3Scale(player.moveDir, player.speed * delta));
-    }
+        player.targetMoveDir = Vector3Add(player.targetMoveDir, right);
 
-    player.speed = (IsKeyDown(KEY_LEFT_SHIFT)) ? 15.0f : 5.0f;
+    if (Vector3Length(player.targetMoveDir) > 0.001f)
+    {
+        player.targetMoveDir = Vector3Normalize(player.targetMoveDir);
+    }
+    Vector3 targetVel = Vector3Scale(player.targetMoveDir, player.speed);
+    float t = player.moveLerpFactor * delta;
+
+    player.moveVelocity.x += (targetVel.x - player.moveVelocity.x) * t;
+    player.moveVelocity.y += (targetVel.y - player.moveVelocity.y) * t;
+    player.moveVelocity.z += (targetVel.z - player.moveVelocity.z) * t;
+
+    player.position = Vector3Add(player.position, Vector3Scale(player.moveVelocity, delta));
+    if (Vector3Length(player.moveVelocity) > 0.001f)
+    {
+        player.modelYaw = atan2f(player.moveVelocity.x, player.moveVelocity.z) * RAD2DEG;
+    }
 }
 
 void Player::UpdatePlayer()
@@ -81,6 +97,7 @@ void Player::UpdateCamera()
     Player player = Player::getInstance();
     Vector3 playerPos = player.GetPlayerPosition();
     Vector2 mouseDelta = GetMouseDelta();
+    float delta = GetFrameTime();
 
     playerPos = Vector3Add(playerPos, Vector3{0.0f, player.height, 0.0f});
 
@@ -93,13 +110,20 @@ void Player::UpdateCamera()
     Vector3 offset = {cosf(pitch) * sinf(yaw) * distance, sinf(pitch) * distance + 2.0f,
                       cosf(pitch) * cosf(yaw) * distance};
 
-    camera.target = playerPos;
-    camera.position = Vector3Add(playerPos, offset);
-    camera.up = {0.0f, 1.0f, 0.0f};
+    Player::targetCamera.position = Vector3Add(playerPos, offset);
+    Player::targetCamera.target = playerPos;
 
-    Vector3 move = {0};
-    Vector3 rot = {0.0f, 0.0f, 0.0f};
-    UpdateCameraPro(&Player::camera, move, rot, 1.0f);
+    float t = Player::cameraLerpFactor * delta;
+
+    // Lerp position
+    Player::camera.position.x += (Player::targetCamera.position.x - Player::camera.position.x) * t;
+    Player::camera.position.y += (Player::targetCamera.position.y - Player::camera.position.y) * t;
+    Player::camera.position.z += (Player::targetCamera.position.z - Player::camera.position.z) * t;
+
+    // Lerp target
+    Player::camera.target.x += (Player::targetCamera.target.x - Player::camera.target.x) * t;
+    Player::camera.target.y += (Player::targetCamera.target.y - Player::camera.target.y) * t;
+    Player::camera.target.z += (Player::targetCamera.target.z - Player::camera.target.z) * t;
 }
 
 void Player::setPlayerPosition(Vector3 pos)
@@ -111,10 +135,6 @@ void Player::setPlayerPosition(Vector3 pos)
 void Player::DrawPlayer(SceneContext *sceneCtx)
 {
     Player &player = Player::getInstance();
-    if (Vector3Length(player.moveDir) > 0.001f)
-    {
-        player.modelYaw = atan2f(player.moveDir.x, player.moveDir.z) * RAD2DEG;
-    }
 
     rlPushMatrix();
     rlTranslatef(player.position.x, player.position.y, player.position.z);
@@ -124,8 +144,4 @@ void Player::DrawPlayer(SceneContext *sceneCtx)
     player.model.materials[1].shader = sceneCtx->terrainShader->getShader();
     DrawModel(player.model, Vector3{0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
     rlPopMatrix();
-
-    player.moveDir.x = 0;
-    player.moveDir.y = 0;
-    player.moveDir.z = 0;
 }

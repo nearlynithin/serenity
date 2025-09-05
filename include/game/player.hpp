@@ -13,7 +13,11 @@ class Player
 {
   private:
     Vector3 position;
+    Vector3 targetPosition;
     Vector3 moveDir;
+    Vector3 targetMoveDir;
+    int moveLerpFactor;
+    Vector3 moveVelocity;
     float modelYaw;
     Model model;
     float speed;
@@ -22,9 +26,11 @@ class Player
 
   public:
     static Camera3D camera;
+    static Camera3D targetCamera;
     static float mouseSensitivity;
     static float yaw;
     static float pitch;
+    static int cameraLerpFactor;
     static Player &getInstance()
     {
         static Player instance;
