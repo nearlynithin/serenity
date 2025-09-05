@@ -2,6 +2,7 @@
 #define PLAYER_H
 
 #include "raylib.h"
+#include "renderContext.hpp"
 
 #define VIEW_BOX_WIDTH 40
 #define VIEW_BOX_HEIGHT 30
@@ -30,7 +31,7 @@ class Player
         return instance;
     }
     static void InitPlayer();
-    static void DrawPlayer();
+    static void DrawPlayer(SceneContext *sceneCtx);
     static Vector3 GetPlayerPosition();
     static void PlayerMoves();
     static void UpdateCamera();

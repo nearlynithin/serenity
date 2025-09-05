@@ -57,9 +57,7 @@ void Scene::UpdateShaders()
     float dt = GetFrameTime();
     Vector3 cameraPos = Player::getInstance().camera.position;
     float camera_position[3] = {cameraPos.x, cameraPos.y, cameraPos.z};
-    SetShaderValue(sceneCtx.terrainShader->getShader(), sceneCtx.terrainShader->getUniformLoc("viewPos"),
-                   camera_position, SHADER_UNIFORM_VEC3);
-
+    sceneCtx.terrainShader->SetShaderValue("viewPos", &camera_position, SHADER_UNIFORM_VEC3);
     float lightDir[3] = {sceneCtx.lightDir.x, sceneCtx.lightDir.y, sceneCtx.lightDir.z};
     sceneCtx.terrainShader->SetShaderValue("lightDir", &lightDir, SHADER_UNIFORM_VEC3);
     float lightColor[4] = {sceneCtx.lightColor.w, sceneCtx.lightColor.x, sceneCtx.lightColor.y, sceneCtx.lightColor.z};
@@ -88,6 +86,8 @@ void Scene::UpdateShaders()
     sceneCtx.lightCam.target = Vector3Zero();
     // Update light direction for the shader (normalized from pos to target)
     sceneCtx.lightDir = Vector3Normalize(Vector3Subtract(sceneCtx.lightCam.target, sceneCtx.lightCam.position));
+
+    Player::UpdatePlayer();
 }
 
 void Scene::InitShadowMapping()
@@ -120,7 +120,7 @@ void Scene::RenderShadowMap()
     BeginMode3D(sceneCtx.lightCam);
     shadowData.lightView = rlGetMatrixModelview();
     shadowData.lightProj = rlGetMatrixProjection();
-    Player::DrawPlayer();
+    Player::DrawPlayer(&sceneCtx);
     TerrainManager::DrawTerrains(&sceneCtx, true);
     DrawCube(Vector3Zero(), 10, 40, 10, RAYWHITE);
     EndMode3D();
@@ -163,7 +163,7 @@ void Scene::DrawScene()
     // Vector3 lightEnd = Vector3Add(Vector3Zero(), Vector3Scale(sceneCtx.lightDir, 70.0f));
     // DrawLine3D(sceneCtx.lightCam.position, lightEnd, RED);
 
-    Player::DrawPlayer();
+    Player::DrawPlayer(&sceneCtx);
 
     EndMode3D();
     EndDrawing();

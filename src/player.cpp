@@ -108,7 +108,7 @@ void Player::setPlayerPosition(Vector3 pos)
     player.position = pos;
 }
 
-void Player::DrawPlayer()
+void Player::DrawPlayer(SceneContext *sceneCtx)
 {
     Player &player = Player::getInstance();
     if (Vector3Length(player.moveDir) > 0.001f)
@@ -121,6 +121,7 @@ void Player::DrawPlayer()
     rlRotatef(player.modelYaw, 0.0f, 1.0f, 0.0f);
     rlRotatef(90.0f, 1.0f, 0.0f, 0.0f);
     rlScalef(0.02f, 0.02f, 0.02f);
+    player.model.materials[1].shader = sceneCtx->terrainShader->getShader();
     DrawModel(player.model, Vector3{0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
     rlPopMatrix();
 
