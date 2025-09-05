@@ -93,19 +93,6 @@ BoundingBox &Terrain::getBBox()
     return bbox;
 }
 
-void Terrain::UpdateShader(Camera3D &camera, SceneContext *sceneCtx)
-{
-    SetShaderValue(sceneCtx->terrainShader->getShader(), sceneCtx->terrainShader->getUniformLoc("lightDir"),
-                   &sceneCtx->lightDir, SHADER_UNIFORM_VEC3);
-
-    SetShaderValue(sceneCtx->terrainShader->getShader(), sceneCtx->terrainShader->getUniformLoc("lightColor"),
-                   &sceneCtx->lightDir, SHADER_UNIFORM_VEC3);
-    SetShaderValue(sceneCtx->terrainShader->getShader(), sceneCtx->terrainShader->getUniformLoc("lightColor"),
-                   &sceneCtx->lightColor, SHADER_UNIFORM_VEC3);
-    SetShaderValue(sceneCtx->terrainShader->getShader(), sceneCtx->terrainShader->getUniformLoc("viewPos"),
-                   &camera.position, SHADER_UNIFORM_VEC3);
-}
-
 void Terrain::DrawGrass(Camera3D &camera, SceneContext *sceneCtx)
 {
     grass.DrawGrass(camera, sceneCtx);

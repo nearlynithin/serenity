@@ -38,7 +38,6 @@ class Terrain
     Vector3 getPosition();
     void setTexture();
     BoundingBox &getBBox();
-    void UpdateShader(Camera3D &camera, SceneContext *sceneCtx);
     void DrawGrass(Camera3D &camera, SceneContext *sceneCtx);
 };
 

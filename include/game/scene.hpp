@@ -20,12 +20,14 @@ class Scene
         return instance;
     }
 
+    void InitScene();
+    void UpdateScene();
+    void DrawScene();
+
     void SetModels();
     void SetLights();
     void SetShaders();
     void UpdateShaders();
-    void ScenePrep();
-    void DrawScene();
     void InitShadowMapping();
     void RenderShadowMap();
     void UpdateLightSpaceMatrix();

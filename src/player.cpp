@@ -72,7 +72,7 @@ void Player::UpdatePlayer()
         auto &anim = rm.getModelAnimation("player");
         player.animCurrentFrame = (player.animCurrentFrame + 1) % anim.frameCount;
         UpdateModelAnimation(player.model, anim, player.animCurrentFrame);
-        std::cout << player.animCurrentFrame << "\n";
+        // std::cout << player.animCurrentFrame << "\n";
     }
 }
 

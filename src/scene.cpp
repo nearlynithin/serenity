@@ -4,18 +4,20 @@
 #include "game/terrain.hpp"
 #include "raymath.h"
 
-void Scene::ScenePrep()
+void Scene::InitScene()
 {
-    float ambience[4] = {0.16f, 0.109f, 0.09f, 0.5f};
-    std::copy(ambience, ambience + 4, sceneCtx.ambient);
-    sceneCtx.lightCam = Camera3D{0};
-    sceneCtx.lightDir = Vector3Normalize(Vector3{0.0f, -1.0f, 0.0});
-    sceneCtx.lightCam.position = Vector3{0.0f, 30.0f, 0.0f};
-    sceneCtx.lightCam.target = Vector3Zero();
-    sceneCtx.lightCam.projection = CAMERA_ORTHOGRAPHIC;
-    sceneCtx.lightCam.up = Vector3{0.0f, 1.0f, 0.0f};
-    sceneCtx.lightCam.fovy = 75.0f; // Increased FOV for better coverage
-    sceneCtx.lightColor = ColorNormalize(YELLOW);
+    TerrainManager::LoadTerrains();
+    SetShaders();
+    SetLights();
+    Player::InitPlayer();
+}
+
+void Scene::UpdateScene()
+{
+    Player::UpdateCamera();
+    TerrainManager::UpdateCollision();
+    UpdateShaders();
+    Player::UpdatePlayer();
 }
 
 void Scene::SetShaders()
@@ -50,6 +52,16 @@ void Scene::SetShaders()
 
 void Scene::SetLights()
 {
+    float ambience[4] = {0.16f, 0.109f, 0.09f, 0.5f};
+    std::copy(ambience, ambience + 4, sceneCtx.ambient);
+    sceneCtx.lightCam = Camera3D{0};
+    sceneCtx.lightDir = Vector3Normalize(Vector3{0.0f, -1.0f, 0.0});
+    sceneCtx.lightCam.position = Vector3{0.0f, 30.0f, 0.0f};
+    sceneCtx.lightCam.target = Vector3Zero();
+    sceneCtx.lightCam.projection = CAMERA_ORTHOGRAPHIC;
+    sceneCtx.lightCam.up = Vector3{0.0f, 1.0f, 0.0f};
+    sceneCtx.lightCam.fovy = 75.0f; // Increased FOV for better coverage
+    sceneCtx.lightColor = ColorNormalize(YELLOW);
 }
 
 void Scene::UpdateShaders()
@@ -86,8 +98,6 @@ void Scene::UpdateShaders()
     sceneCtx.lightCam.target = Vector3Zero();
     // Update light direction for the shader (normalized from pos to target)
     sceneCtx.lightDir = Vector3Normalize(Vector3Subtract(sceneCtx.lightCam.target, sceneCtx.lightCam.position));
-
-    Player::UpdatePlayer();
 }
 
 void Scene::InitShadowMapping()
@@ -159,9 +169,6 @@ void Scene::DrawScene()
     BeginShaderMode(sceneCtx.terrainShader->getShader());
     DrawCube(Vector3Zero(), 10, 40, 10, RAYWHITE);
     EndShaderMode();
-    // DrawSphere(sceneCtx.lightCam.position, 2.0f, WHITE);
-    // Vector3 lightEnd = Vector3Add(Vector3Zero(), Vector3Scale(sceneCtx.lightDir, 70.0f));
-    // DrawLine3D(sceneCtx.lightCam.position, lightEnd, RED);
 
     Player::DrawPlayer(&sceneCtx);
 

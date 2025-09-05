@@ -25,12 +25,8 @@ bool Game::Initialize()
     ResourceLoader::LoadAllTextures();
     ResourceLoader::LoadAllShaders();
     ResourceLoader::LoadAllModels();
-    TerrainManager::LoadTerrains();
-    Scene::getInstance().ScenePrep();
-    Scene::getInstance().SetShaders();
-    Scene::getInstance().SetLights();
 
-    Player::InitPlayer();
+    Scene::getInstance().InitScene();
 
     if (IsWindowReady())
     {
@@ -67,21 +63,17 @@ void Game::RunLoop()
 
 void Game::ProcessInput()
 {
+    // will be scene inputs later on
     Player::PlayerMoves();
 }
 
 void Game::UpdateGame()
 {
-    Player::UpdateCamera();
-    // TerrainManager::UpdateTerrains();
-    TerrainManager::UpdateCollision();
-    Scene::getInstance().UpdateShaders();
-    Player::UpdatePlayer();
+    Scene::getInstance().UpdateScene();
 }
 
 void Game::GenerateOutput()
 {
-
     Scene::getInstance().DrawScene();
 
     DrawFPS(20, 20);
