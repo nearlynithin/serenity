@@ -34,4 +34,8 @@ void ResourceLoader::LoadAllModels()
     SetTextureFilter(resourceManager.getModel("grass").materials[0].maps[MATERIAL_MAP_DIFFUSE].texture,
                      TEXTURE_FILTER_TRILINEAR);
     resourceManager.LoadSkyboxModel("skybox", 1.0f, 1.0f, 1.0f);
+    resourceManager.Loadmodel("player", "assets/player.glb");
+
+    // Loading model animations
+    resourceManager.loadModelAnimation("player", "assets/player.glb");
 }

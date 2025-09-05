@@ -19,6 +19,7 @@ class ResourceManager
     std::unordered_map<std::string, Texture2D> textures;
     std::unordered_map<std::string, std::shared_ptr<gfx::Shader>> shaders;
     std::unordered_map<std::string, Model> models;
+    std::unordered_map<std::string, ModelAnimation *> modelAnimations;
 
   public:
     static ResourceManager &getInstance()
@@ -114,6 +115,29 @@ class ResourceManager
         {
             std::cerr << "Model not ready : " << modelName << "\n";
         }
+    }
+    void loadModelAnimation(const std::string &animationName, const std::string &filename)
+    {
+        // this function currently does not store the animations count
+
+        int animCount = 0;
+        ModelAnimation *anim = LoadModelAnimations(filename.c_str(), &animCount);
+        if (animCount < 0)
+        {
+            std::cerr << "No animations found in file : " << filename << "\n";
+            return;
+        }
+        modelAnimations[animationName] = anim;
+    }
+
+    ModelAnimation &getModelAnimation(const std::string &name)
+    {
+        auto it = modelAnimations.find(name);
+        if (it == modelAnimations.end())
+        {
+            std::cerr << "Animation : " << name << " was not loaded\n";
+        }
+        return *it->second;
     }
 
     void LoadSkyboxModel(const std::string &modelName, float width, float height, float length)
