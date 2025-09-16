@@ -10,6 +10,7 @@ struct SceneContext
     Vector4 lightColor;
     float ambient[4];
     Matrix lightViewProj;
+    int renderPass;
     gfx::Shader *grassShader;
     gfx::Shader *terrainShader;
     gfx::Shader *skyboxShader;

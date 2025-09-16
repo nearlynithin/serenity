@@ -69,16 +69,21 @@ void Scene::UpdateShaders()
     float dt = GetFrameTime();
     Vector3 cameraPos = Player::getInstance().camera.position;
     float camera_position[3] = {cameraPos.x, cameraPos.y, cameraPos.z};
+
     sceneCtx.terrainShader->SetShaderValue("viewPos", &camera_position, SHADER_UNIFORM_VEC3);
-    float lightDir[3] = {sceneCtx.lightDir.x, sceneCtx.lightDir.y, sceneCtx.lightDir.z};
-    sceneCtx.terrainShader->SetShaderValue("lightDir", &lightDir, SHADER_UNIFORM_VEC3);
-    float lightColor[4] = {sceneCtx.lightColor.w, sceneCtx.lightColor.x, sceneCtx.lightColor.y, sceneCtx.lightColor.z};
-    sceneCtx.terrainShader->SetShaderValue("lightColor", &lightColor, SHADER_UNIFORM_VEC4);
+    sceneCtx.terrainShader->SetShaderValue("lightDir", &sceneCtx.lightDir, SHADER_UNIFORM_VEC3);
+    sceneCtx.terrainShader->SetShaderValue("lightColor", &sceneCtx.lightColor, SHADER_UNIFORM_VEC4);
     sceneCtx.terrainShader->SetShaderValue("ambient", &sceneCtx.ambient, SHADER_UNIFORM_VEC4);
     SetShaderValueMatrix(sceneCtx.terrainShader->getShader(), sceneCtx.terrainShader->getUniformLoc("lightVP"),
                          shadowData.lightViewProj);
+
+    sceneCtx.grassShader->SetShaderValue("viewPos", &camera_position, SHADER_UNIFORM_VEC3);
+    sceneCtx.grassShader->SetShaderValue("lightDir", &sceneCtx.lightDir, SHADER_UNIFORM_VEC3);
+    sceneCtx.grassShader->SetShaderValue("lightColor", &sceneCtx.lightColor, SHADER_UNIFORM_VEC4);
+    sceneCtx.grassShader->SetShaderValue("ambient", &sceneCtx.ambient, SHADER_UNIFORM_VEC4);
     SetShaderValueMatrix(sceneCtx.grassShader->getShader(), sceneCtx.grassShader->getUniformLoc("lightVP"),
                          shadowData.lightViewProj);
+
     const float cameraSpeed = 25.00f;
     // Define a position for the light in world space
     if (IsKeyDown(KEY_LEFT))
@@ -109,17 +114,12 @@ void Scene::InitShadowMapping()
     sceneCtx.shadowMapShader->addUniform("matModel");
     sceneCtx.shadowMapShader->addUniform("matNormal");
 
-    // setup terrain shader for shadow mapping
-    sceneCtx.terrainShader->addUniform("shadowMap");
-    sceneCtx.terrainShader->addUniform("shadowMapResolution");
-    sceneCtx.terrainShader->addUniform("lightVP");
-    // sceneCtx.terrainShader->SetShaderValue("shadowMap", &shadowData.shadowMapSlot, SHADER_UNIFORM_INT);
     float shadowRes = SHADOWMAP_RESOLUTION;
+    // setup terrain shader for shadow mapping
+    sceneCtx.terrainShader->addUniform("shadowMapResolution");
     sceneCtx.terrainShader->SetShaderValue("shadowMapResolution", &shadowRes, SHADER_UNIFORM_INT);
     // setup grass Shader for shadow mapping
-    sceneCtx.grassShader->addUniform("shadowMap");
     sceneCtx.grassShader->addUniform("shadowMapResolution");
-    sceneCtx.grassShader->addUniform("lightVP");
     sceneCtx.grassShader->SetShaderValue("shadowMapResolution", &shadowRes, SHADER_UNIFORM_INT);
 }
 
@@ -130,48 +130,48 @@ void Scene::RenderShadowMap()
     BeginMode3D(sceneCtx.lightCam);
     shadowData.lightView = rlGetMatrixModelview();
     shadowData.lightProj = rlGetMatrixProjection();
+    shadowData.lightViewProj = MatrixMultiply(shadowData.lightView, shadowData.lightProj);
+    sceneCtx.renderPass = 0;
+
     Player::DrawPlayer(&sceneCtx);
     TerrainManager::DrawTerrains(&sceneCtx, true);
     DrawCube(Vector3Zero(), 10, 40, 10, RAYWHITE);
+
     EndMode3D();
     EndTextureMode();
-
-    shadowData.lightViewProj = MatrixMultiply(shadowData.lightView, shadowData.lightProj);
 }
 
 void Scene::DrawScene()
 {
     BeginDrawing();
     RenderShadowMap();
-
     auto &rm = ResourceManager::getInstance();
     ClearBackground(BLACK);
-    rlEnableShader(sceneCtx.terrainShader->getShader().id);
-    rlActiveTextureSlot(shadowData.shadowMapSlot);
-    rlEnableTexture(shadowData.shadowMap.depth.id);
-    rlSetUniform(sceneCtx.terrainShader->getUniformLoc("shadowMap"), &shadowData.shadowMapSlot, SHADER_UNIFORM_INT, 1);
-    rlSetUniform(sceneCtx.grassShader->getUniformLoc("shadowMap"), &shadowData.shadowMapSlot, SHADER_UNIFORM_INT, 1);
 
-    ClearBackground(BLACK);
     BeginMode3D(Player::camera);
 
-    // draw skybox
+    // Draw skybox
     rlDisableBackfaceCulling();
     rlDisableDepthMask();
     DrawModel(rm.getModel("skybox"), Vector3{0, 0, 0}, 1.0f, WHITE);
     rlEnableBackfaceCulling();
     rlEnableDepthMask();
 
-    rlEnableShader(sceneCtx.terrainShader->getShader().id);
     rlActiveTextureSlot(shadowData.shadowMapSlot);
     rlEnableTexture(shadowData.shadowMap.depth.id);
+    rlEnableShader(sceneCtx.grassShader->getShader().id);
+    rlSetUniform(sceneCtx.grassShader->getUniformLoc("shadowMap"), &shadowData.shadowMapSlot, SHADER_UNIFORM_INT, 1);
     TerrainManager::DrawTerrains(&sceneCtx, false);
+
+    rlActiveTextureSlot(shadowData.shadowMapSlot);
+    rlEnableTexture(shadowData.shadowMap.depth.id);
+    rlEnableShader(sceneCtx.terrainShader->getShader().id);
+    rlSetUniform(sceneCtx.terrainShader->getUniformLoc("shadowMap"), &shadowData.shadowMapSlot, SHADER_UNIFORM_INT, 1);
+
     BeginShaderMode(sceneCtx.terrainShader->getShader());
     DrawCube(Vector3Zero(), 10, 40, 10, RAYWHITE);
-    EndShaderMode();
-
     Player::DrawPlayer(&sceneCtx);
-
+    EndShaderMode();
     EndMode3D();
     EndDrawing();
 }

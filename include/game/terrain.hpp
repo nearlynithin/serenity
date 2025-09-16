@@ -8,7 +8,6 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 
 #define WIDTH 20.0f
 #define HEIGHT 20.0f

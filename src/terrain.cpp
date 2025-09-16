@@ -74,8 +74,10 @@ void TerrainManager::setShaders(SceneContext *sceneCtx)
     sceneCtx->terrainShader->addUniform("lightDir");
     sceneCtx->terrainShader->addUniform("lightColor");
     sceneCtx->terrainShader->addUniform("ambient");
-    int ambientLoc = sceneCtx->terrainShader->addUniform("ambient");
-    SetShaderValue(sceneCtx->terrainShader->getShader(), ambientLoc, &sceneCtx->ambient, SHADER_UNIFORM_VEC4);
+    sceneCtx->terrainShader->addUniform("shadowMap");
+    sceneCtx->terrainShader->addUniform("lightVP");
+    sceneCtx->terrainShader->addUniform("renderPass");
+    sceneCtx->terrainShader->SetShaderValue("ambient", &sceneCtx->ambient, SHADER_UNIFORM_VEC4);
 
     // grass Shaders
     sceneCtx->grassShader = rm.getShader("grassShader");
@@ -86,6 +88,15 @@ void TerrainManager::setShaders(SceneContext *sceneCtx)
     sceneCtx->grassShader->addUniform("camTarget");
     sceneCtx->grassShader->addUniform("fogDensity");
     sceneCtx->grassShader->addUniform("ambient");
+    sceneCtx->grassShader->addUniform("shadowMap");
+    sceneCtx->grassShader->addUniform("lightVP");
+    sceneCtx->grassShader->addUniform("lightDir");
+    sceneCtx->grassShader->addUniform("lightColor");
+    sceneCtx->grassShader->addUniform("renderPass");
+    sceneCtx->grassShader->addUniform("shininess");
+    sceneCtx->grassShader->addUniform("specularStrength");
+    sceneCtx->grassShader->addUniform("metallicFactor");
+    sceneCtx->grassShader->addUniform("fogDensity");
 }
 
 BoundingBox &Terrain::getBBox()
@@ -137,6 +148,7 @@ void TerrainManager::DrawTerrains(SceneContext *sceneCtx, bool shadowPass)
                 // std::cout << "(" << pos.x << "," << pos.y << ") ";
                 if (shadowPass)
                 {
+                    sceneCtx->renderPass = 0;
                     DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
                     rlDisableBackfaceCulling();
                     terrain->DrawGrass(player.camera, sceneCtx);
@@ -144,9 +156,12 @@ void TerrainManager::DrawTerrains(SceneContext *sceneCtx, bool shadowPass)
                 }
                 else
                 {
+                    sceneCtx->renderPass = 1;
                     terrain->getTerrain().materials[0].shader = sceneCtx->terrainShader->getShader();
                     DrawModel(terrain->getTerrain(), Vector3Zero(), 1.0f, DARKBROWN);
+                    rlDisableBackfaceCulling();
                     terrain->DrawGrass(player.camera, sceneCtx);
+                    rlEnableBackfaceCulling();
                 }
                 // DrawBoundingBox(terrain->getBBox(), GREEN);
             }
