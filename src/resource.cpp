@@ -18,12 +18,11 @@ void ResourceLoader::LoadAllTextures()
 void ResourceLoader::LoadAllShaders()
 {
     auto &resourceManager = ResourceManager::getInstance();
-    resourceManager.Loadshader("terrainShader", "assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
-    resourceManager.Loadshader("shadowMapShader", "assets/shaders/shadowmap.vs", "assets/shaders/shadowmap.fs");
-    resourceManager.Loadshader("grassShader", "assets/shaders/lighting_instancing.vs", "assets/shaders/lighting.fs");
-    resourceManager.Loadshader("skyboxShader", "assets/shaders/skybox.vs", "assets/shaders/skybox.fs");
-    resourceManager.Loadshader("cubemapShader", "assets/shaders/cubemap.vs", "assets/shaders/cubemap.fs");
-    // resourceManager.Loadshader("light", "assets/shaders/lighting.vs", "assets/shaders/lighting.fs");
+    resourceManager.Loadshader("terrainShader", "assets/shaders/lighting.vert", "assets/shaders/lighting.frag");
+    resourceManager.Loadshader("shadowMapShader", "assets/shaders/shadowmap.vert", "assets/shaders/shadowmap.frag");
+    resourceManager.Loadshader("grassShader", "assets/shaders/grass.vert", "assets/shaders/grass.frag");
+    resourceManager.Loadshader("skyboxShader", "assets/shaders/skybox.vert", "assets/shaders/skybox.frag");
+    resourceManager.Loadshader("cubemapShader", "assets/shaders/cubemap.vert", "assets/shaders/cubemap.frag");
 }
 
 void ResourceLoader::LoadAllModels()
