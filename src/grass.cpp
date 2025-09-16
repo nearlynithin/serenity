@@ -10,7 +10,7 @@ void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightF
     grass = rm.getModel("grass");
     transforms = (Matrix *)RL_CALLOC(MAX_INSTANCES, sizeof(Matrix));
 
-    const float stepSize = 0.3;
+    const float stepSize = 0.4f;
 
     int instanceCount = 0;
     for (float z = 0; z < height; z += stepSize)
@@ -30,16 +30,12 @@ void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightF
             float y = h * heightFactor;
 
             Vector3 pos = {worldX + (width / 2 + offset_x), y, worldZ + (height / 2 + offset_y)};
+            float scaleY = GetRandomValue(5, 8);
 
-            float rotX = (float)GetRandomValue(-80, -45) * DEG2RAD;
-            float scaleY = GetRandomValue(3, 5);
-
-            Matrix matRot = MatrixRotateX(rotX);
             Matrix matScale = MatrixScale(4, scaleY, 4);
             Matrix matTrans = MatrixTranslate(pos.x, pos.y, pos.z);
 
-            Matrix mat = MatrixMultiply(matScale, matRot);
-            transforms[instanceCount++] = MatrixMultiply(mat, matTrans);
+            transforms[instanceCount++] = MatrixMultiply(matScale, matTrans);
         }
     }
     matInstances = grass.materials[0];
@@ -55,6 +51,10 @@ void Grass::Animate(gfx::Shader *grassShader)
 
 void Grass::DrawGrass(Camera3D &camera, SceneContext *sceneCtx)
 {
+    float shininess = 12.0f;       // Low shininess for matte grass
+    float specularStrength = 0.3f; // Very low specular for grass
+    float metallicFactor = 0.0f;   // Non-metallic
+    float fogDensity = 0.02f;      // Adjust to taste
     Animate(sceneCtx->grassShader);
     sceneCtx->grassShader->getShader().locs[SHADER_LOC_MATRIX_MODEL] =
         GetShaderLocationAttrib(sceneCtx->grassShader->getShader(), "instanceTransform");
@@ -62,7 +62,11 @@ void Grass::DrawGrass(Camera3D &camera, SceneContext *sceneCtx)
     sceneCtx->grassShader->SetShaderValue("viewPos", &camera.position, SHADER_UNIFORM_VEC3);
     sceneCtx->grassShader->SetShaderValue("camTarget", &camera.target, SHADER_UNIFORM_VEC3);
     sceneCtx->grassShader->SetShaderValue("ambient", sceneCtx->ambient, SHADER_UNIFORM_VEC4);
-    // SetShaderValue(grassShader->getShader(), fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
+    sceneCtx->grassShader->SetShaderValue("shininess", &shininess, SHADER_UNIFORM_FLOAT);
+    sceneCtx->grassShader->SetShaderValue("specularStrength", &specularStrength, SHADER_UNIFORM_FLOAT);
+    sceneCtx->grassShader->SetShaderValue("metallicFactor", &metallicFactor, SHADER_UNIFORM_FLOAT);
+    sceneCtx->grassShader->SetShaderValue("fogDensity", &fogDensity, SHADER_UNIFORM_FLOAT);
+    sceneCtx->grassShader->SetShaderValue("renderPass", &sceneCtx->renderPass, SHADER_UNIFORM_INT);
     matInstances.shader = sceneCtx->grassShader->getShader();
     DrawMeshInstanced(grass.meshes[0], matInstances, transforms, totalInstances);
 }
