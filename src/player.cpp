@@ -3,7 +3,6 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
-#include <iostream>
 
 Camera3D Player::camera;
 float Player::mouseSensitivity;
@@ -16,8 +15,9 @@ void Player::InitPlayer()
 {
     Player &player = Player::getInstance();
     player.position = Vector3{0, 0, 0};
-    player.height = 4.0f;
+    player.height = 3.0f;
     player.speed = 5.0f;
+    player.animFPS = 1.0f / 120.0f; // 70 FPS
     player.model = ResourceManager::getInstance().getModel("player");
     Player::camera = {0};
     camera.position = {10.0f, 10.0f, 10.0f};
@@ -41,7 +41,7 @@ void Player::PlayerMoves()
 {
     Player &player = Player::getInstance();
     float delta = GetFrameTime();
-    player.speed = (IsKeyDown(KEY_LEFT_SHIFT)) ? 15.0f : 5.0f;
+    player.speed = (IsKeyDown(KEY_LEFT_SHIFT)) ? PLAYER_RUN_SPEED : PLAYER_WALK_SPEED;
 
     // reset at the start of movement handling
     player.targetMoveDir = {0.0f, 0.0f, 0.0f};
@@ -52,14 +52,32 @@ void Player::PlayerMoves()
     forward = Vector3Normalize(forward);
     right = Vector3Normalize(right);
 
+    player.animIndex = 0;
     if (IsKeyDown(KEY_W))
+    {
         player.targetMoveDir = Vector3Subtract(player.targetMoveDir, forward);
+        player.animIndex = 3;
+    }
     if (IsKeyDown(KEY_A))
+    {
         player.targetMoveDir = Vector3Subtract(player.targetMoveDir, right);
+        player.animIndex = 3;
+    }
     if (IsKeyDown(KEY_S))
+    {
         player.targetMoveDir = Vector3Add(player.targetMoveDir, forward);
+        player.animIndex = 3;
+    }
     if (IsKeyDown(KEY_D))
+    {
         player.targetMoveDir = Vector3Add(player.targetMoveDir, right);
+        player.animIndex = 3;
+    }
+
+    if (IsKeyDown(KEY_LEFT_SHIFT))
+        player.animIndex = 1;
+    if (IsKeyDown(KEY_T))
+        player.animIndex = 2;
 
     if (Vector3Length(player.targetMoveDir) > 0.001f)
     {
@@ -81,15 +99,20 @@ void Player::PlayerMoves()
 
 void Player::UpdatePlayer()
 {
-    if (IsKeyDown(KEY_SPACE))
+    Player &player = Player::getInstance();
+    float dt = GetFrameTime();
+    auto rm = ResourceManager::getInstance();
+    ModelAnim &anim = rm.getModelAnimation("player");
+
+    player.animTime += dt;
+
+    while (player.animTime >= player.animFPS)
     {
-        Player &player = Player::getInstance();
-        auto rm = ResourceManager::getInstance();
-        auto &anim = rm.getModelAnimation("player");
-        player.animCurrentFrame = (player.animCurrentFrame + 1) % anim.frameCount;
-        UpdateModelAnimation(player.model, anim, player.animCurrentFrame);
-        // std::cout << player.animCurrentFrame << "\n";
+        player.animTime -= player.animFPS;
+        player.animCurrentFrame = (player.animCurrentFrame + 1) % anim.modelAnim->frameCount;
     }
+
+    UpdateModelAnimation(player.model, anim.modelAnim[player.animIndex], player.animCurrentFrame);
 }
 
 void Player::UpdateCamera()
@@ -104,7 +127,7 @@ void Player::UpdateCamera()
     yaw -= mouseDelta.x * mouseSensitivity;
     pitch += mouseDelta.y * mouseSensitivity;
 
-    pitch = Clamp(pitch, -PI / 2 + 0.1f, PI / 2 - 0.1f);
+    pitch = Clamp(pitch, -PI / 2 + 0.1f, PI / 2 - 0.8f);
 
     float distance = 5.0f;
     Vector3 offset = {cosf(pitch) * sinf(yaw) * distance, sinf(pitch) * distance + 2.0f,
@@ -141,7 +164,10 @@ void Player::DrawPlayer(SceneContext *sceneCtx)
     rlRotatef(player.modelYaw, 0.0f, 1.0f, 0.0f);
     rlRotatef(90.0f, 1.0f, 0.0f, 0.0f);
     rlScalef(0.02f, 0.02f, 0.02f);
-    player.model.materials[1].shader = sceneCtx->terrainShader->getShader();
+    for (int i = 0; i < player.model.materialCount; i++)
+    {
+        player.model.materials[i].shader = sceneCtx->terrainShader->getShader();
+    }
     DrawModel(player.model, Vector3{0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
     rlPopMatrix();
 }

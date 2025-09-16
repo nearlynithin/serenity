@@ -10,8 +10,14 @@
 #include <unordered_map>
 
 // Some macros related to shaders
-#define SHADOWMAP_RESOLUTION 1024
+#define SHADOWMAP_RESOLUTION 2048
 #define SHADOW_MAP_SLOT 1
+
+struct ModelAnim
+{
+    ModelAnimation *modelAnim;
+    int animsCount;
+};
 
 class ResourceManager
 {
@@ -19,7 +25,7 @@ class ResourceManager
     std::unordered_map<std::string, Texture2D> textures;
     std::unordered_map<std::string, std::shared_ptr<gfx::Shader>> shaders;
     std::unordered_map<std::string, Model> models;
-    std::unordered_map<std::string, ModelAnimation *> modelAnimations;
+    std::unordered_map<std::string, ModelAnim> modelAnimations;
 
   public:
     static ResourceManager &getInstance()
@@ -118,26 +124,24 @@ class ResourceManager
     }
     void loadModelAnimation(const std::string &animationName, const std::string &filename)
     {
-        // this function currently does not store the animations count
-
-        int animCount = 0;
-        ModelAnimation *anim = LoadModelAnimations(filename.c_str(), &animCount);
-        if (animCount < 0)
+        ModelAnim modelAnim;
+        modelAnim.modelAnim = LoadModelAnimations(filename.c_str(), &modelAnim.animsCount);
+        if (modelAnim.animsCount <= 0)
         {
             std::cerr << "No animations found in file : " << filename << "\n";
             return;
         }
-        modelAnimations[animationName] = anim;
+        modelAnimations[animationName] = modelAnim;
     }
 
-    ModelAnimation &getModelAnimation(const std::string &name)
+    ModelAnim &getModelAnimation(const std::string &name)
     {
         auto it = modelAnimations.find(name);
         if (it == modelAnimations.end())
         {
             std::cerr << "Animation : " << name << " was not loaded\n";
         }
-        return *it->second;
+        return it->second;
     }
 
     void LoadSkyboxModel(const std::string &modelName, float width, float height, float length)

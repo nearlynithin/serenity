@@ -9,6 +9,9 @@
 #define VIEW_BOX_LENGTH 75
 #define VIEW_BOX_DISTANCE 50.0f
 
+#define PLAYER_RUN_SPEED 18.0f
+#define PLAYER_WALK_SPEED 8.0f
+
 class Player
 {
   private:
@@ -23,6 +26,9 @@ class Player
     float speed;
     float height;
     int animCurrentFrame;
+    int animIndex;
+    float animTime;
+    float animFPS;
 
   public:
     static Camera3D camera;
