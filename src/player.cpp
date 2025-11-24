@@ -56,22 +56,22 @@ void Player::PlayerMoves()
     if (IsKeyDown(KEY_W))
     {
         player.targetMoveDir = Vector3Subtract(player.targetMoveDir, forward);
-        player.animIndex = 3;
+        // player.animIndex = 3;
     }
     if (IsKeyDown(KEY_A))
     {
         player.targetMoveDir = Vector3Subtract(player.targetMoveDir, right);
-        player.animIndex = 3;
+        // player.animIndex = 3;
     }
     if (IsKeyDown(KEY_S))
     {
         player.targetMoveDir = Vector3Add(player.targetMoveDir, forward);
-        player.animIndex = 3;
+        // player.animIndex = 3;
     }
     if (IsKeyDown(KEY_D))
     {
         player.targetMoveDir = Vector3Add(player.targetMoveDir, right);
-        player.animIndex = 3;
+        // player.animIndex = 3;
     }
 
     if (IsKeyDown(KEY_LEFT_SHIFT))

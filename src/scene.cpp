@@ -30,7 +30,7 @@ void Scene::SetShaders()
     Model skybox = rm.getModel("skybox");
     sceneCtx.skyboxShader = rm.getShader("skyboxShader");
     sceneCtx.cubemapShader = rm.getShader("cubemapShader");
-    Image img = LoadImage("assets/skybox.png");
+    Image img = LoadImage("assets/skybox_hazy.png");
     const int mtrCubemap = MATERIAL_MAP_CUBEMAP;
     const int userHdr = 0;
     const int eqRect = 0;
