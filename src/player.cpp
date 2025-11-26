@@ -52,32 +52,32 @@ void Player::PlayerMoves()
     forward = Vector3Normalize(forward);
     right = Vector3Normalize(right);
 
-    player.animIndex = 0;
+    player.animIndex = 2;
     if (IsKeyDown(KEY_W))
     {
         player.targetMoveDir = Vector3Subtract(player.targetMoveDir, forward);
-        // player.animIndex = 3;
+        player.animIndex = 0;
     }
     if (IsKeyDown(KEY_A))
     {
         player.targetMoveDir = Vector3Subtract(player.targetMoveDir, right);
-        // player.animIndex = 3;
+        player.animIndex = 0;
     }
     if (IsKeyDown(KEY_S))
     {
         player.targetMoveDir = Vector3Add(player.targetMoveDir, forward);
-        // player.animIndex = 3;
+        player.animIndex = 0;
     }
     if (IsKeyDown(KEY_D))
     {
         player.targetMoveDir = Vector3Add(player.targetMoveDir, right);
-        // player.animIndex = 3;
+        player.animIndex = 0;
     }
 
     if (IsKeyDown(KEY_LEFT_SHIFT))
         player.animIndex = 1;
     if (IsKeyDown(KEY_T))
-        player.animIndex = 2;
+        player.animIndex = 3;
 
     if (Vector3Length(player.targetMoveDir) > 0.001f)
     {
@@ -104,6 +104,7 @@ void Player::UpdatePlayer()
     auto rm = ResourceManager::getInstance();
     ModelAnim &anim = rm.getModelAnimation("player");
 
+    // player.animTime += dt;
     player.animTime += dt;
 
     while (player.animTime >= player.animFPS)
@@ -160,14 +161,13 @@ void Player::DrawPlayer(SceneContext *sceneCtx)
     Player &player = Player::getInstance();
 
     rlPushMatrix();
-    rlTranslatef(player.position.x, player.position.y, player.position.z);
-    rlRotatef(player.modelYaw, 0.0f, 1.0f, 0.0f);
-    rlRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-    rlScalef(0.02f, 0.02f, 0.02f);
+    // rlRotatef(player.modelYaw, 0.0f, 1.0f, 0.0f);
     for (int i = 0; i < player.model.materialCount; i++)
     {
         player.model.materials[i].shader = sceneCtx->terrainShader->getShader();
     }
-    DrawModel(player.model, Vector3{0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
+    // DrawModel(player.model, player.position, 2.0f, WHITE);
+    DrawModelEx(player.model, player.position, Vector3{0.0f, 1.0f, 0.0f}, player.modelYaw, Vector3{2.0f, 2.0f, 2.0f},
+                WHITE);
     rlPopMatrix();
 }
