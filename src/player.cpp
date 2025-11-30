@@ -56,27 +56,28 @@ void Player::PlayerMoves()
     if (IsKeyDown(KEY_W))
     {
         player.targetMoveDir = Vector3Subtract(player.targetMoveDir, forward);
-        player.animIndex = 0;
     }
     if (IsKeyDown(KEY_A))
     {
         player.targetMoveDir = Vector3Subtract(player.targetMoveDir, right);
-        player.animIndex = 0;
     }
     if (IsKeyDown(KEY_S))
     {
         player.targetMoveDir = Vector3Add(player.targetMoveDir, forward);
-        player.animIndex = 0;
     }
     if (IsKeyDown(KEY_D))
     {
         player.targetMoveDir = Vector3Add(player.targetMoveDir, right);
-        player.animIndex = 0;
     }
 
-    if (IsKeyDown(KEY_LEFT_SHIFT))
-        player.animIndex = 1;
-    if (IsKeyDown(KEY_T))
+    if (IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D))
+    {
+        player.animIndex = 0;
+        if (IsKeyDown(KEY_LEFT_SHIFT))
+            player.animIndex = 1;
+    }
+
+    if (IsKeyDown(KEY_SPACE))
         player.animIndex = 3;
 
     if (Vector3Length(player.targetMoveDir) > 0.001f)
@@ -160,14 +161,46 @@ void Player::DrawPlayer(SceneContext *sceneCtx)
 {
     Player &player = Player::getInstance();
 
-    rlPushMatrix();
-    // rlRotatef(player.modelYaw, 0.0f, 1.0f, 0.0f);
     for (int i = 0; i < player.model.materialCount; i++)
     {
         player.model.materials[i].shader = sceneCtx->terrainShader->getShader();
     }
-    // DrawModel(player.model, player.position, 2.0f, WHITE);
     DrawModelEx(player.model, player.position, Vector3{0.0f, 1.0f, 0.0f}, player.modelYaw, Vector3{2.0f, 2.0f, 2.0f},
                 WHITE);
-    rlPopMatrix();
+    DrawSkeleton(&player.model);
+}
+
+void Player::DrawSkeleton(Model *model)
+{
+    auto &rm = ResourceManager::getInstance();
+    Player &player = Player::getInstance();
+    ModelAnim &anims = rm.getModelAnimation("player");
+
+    int animId = player.animIndex;
+    int frame = player.animCurrentFrame;
+
+    int animBoneCount = anims.modelAnim[animId].boneCount;
+    int animFrameCount = anims.modelAnim[animId].frameCount;
+
+    if (frame >= animFrameCount)
+        frame = animFrameCount - 1;
+
+    Matrix playerMatrix = MatrixTranslate(player.position.x, player.position.y, player.position.z);
+
+    for (int i = 0; i < animBoneCount; i++)
+    {
+        Vector3 local = anims.modelAnim[animId].framePoses[frame][i].translation;
+        Vector3 bonePos = Vector3Transform(local, playerMatrix);
+
+        DrawCube(bonePos, 0.05f, 0.05f, 0.05f, RED);
+
+        int parent = anims.modelAnim[animId].bones[i].parent;
+        if (parent >= 0 && parent < animBoneCount)
+        {
+            Vector3 localParent = anims.modelAnim[animId].framePoses[frame][parent].translation;
+            Vector3 worldParent = Vector3Transform(localParent, playerMatrix);
+
+            DrawLine3D(bonePos, worldParent, RED);
+        }
+    }
 }

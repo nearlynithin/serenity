@@ -49,6 +49,7 @@ class Player
     static void UpdateCamera();
     static void setPlayerPosition(Vector3 pos);
     static void UpdatePlayer();
+    static void DrawSkeleton(Model *model);
 };
 
 #endif
