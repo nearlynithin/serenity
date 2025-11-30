@@ -2,9 +2,11 @@
 #define TERRAIN_H
 
 #include "game/grass.hpp"
+#include "player.hpp"
 #include "raylib.h"
 #include "renderContext.hpp"
 #include "rlFrustum.h"
+#include "utils.hpp"
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -43,20 +45,20 @@ class Terrain
 class TerrainManager
 {
   private:
-    static std::unordered_map<Vector2, std::unique_ptr<Terrain>> terrains;
-    static std::unordered_set<Vector2> cords;
-    static Vector2 currentTerrain;
-    static RayCollision collision;
-    static Ray playerMarker;
-    static RLFrustum frustum;
+    std::unordered_map<Vector2, std::unique_ptr<Terrain>> terrains;
+    std::unordered_set<Vector2> cords;
+    Vector2 currentTerrain;
+    RayCollision collision;
+    Ray playerMarker;
+    RLFrustum frustum;
     float ambient[4] = {0.2f, 0.2f, 0.2f, 1.0f};
 
   public:
-    static void LoadTerrains();
-    static void setShaders(SceneContext *sceneCtx);
-    static void DrawTerrains(SceneContext *sceneCtx, bool shadowPass);
-    static void DrawTerrainGrid();
-    static void UpdateCollision();
+    void LoadTerrains(Player &player);
+    void setShaders(SceneContext *sceneCtx);
+    void DrawTerrains(SceneContext *sceneCtx, bool shadowPass, Player &player);
+    void DrawTerrainGrid();
+    void UpdateCollision(Player &player);
 };
 
 #endif

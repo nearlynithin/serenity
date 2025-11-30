@@ -5,17 +5,16 @@
 #include "perlin.hpp"
 #include "raymath.h"
 #include "rlFrustum.h"
-#include "utils.hpp"
 #include <stdlib.h>
 #include <string.h>
 #include <unordered_set>
 
-std::unordered_map<Vector2, std::unique_ptr<Terrain>> TerrainManager::terrains;
-Vector2 TerrainManager::currentTerrain;
-std::unordered_set<Vector2> TerrainManager::cords;
-RayCollision TerrainManager::collision;
-Ray TerrainManager::playerMarker;
-RLFrustum TerrainManager::frustum;
+// std::unordered_map<Vector2, std::unique_ptr<Terrain>> TerrainManager::terrains;
+// Vector2 TerrainManager::currentTerrain;
+// std::unordered_set<Vector2> TerrainManager::cords;
+// RayCollision TerrainManager::collision;
+// Ray TerrainManager::playerMarker;
+// RLFrustum TerrainManager::frustum;
 
 Terrain::Terrain(float offsetx, float offsety)
   : resX(RES_X),
@@ -115,7 +114,7 @@ Terrain::~Terrain()
 }
 
 // Terrain manager
-void TerrainManager::LoadTerrains()
+void TerrainManager::LoadTerrains(Player &player)
 {
     for (int i = -MAX_TERRAIN / 2; i < MAX_TERRAIN / 2; i++)
     {
@@ -129,13 +128,12 @@ void TerrainManager::LoadTerrains()
         }
     }
     currentTerrain = Vector2{0, 0};
-    Vector3 markerpos = Vector3Add(Vector3{0.0f, 100.0f, 0.0f}, Player::getInstance().GetPlayerPosition());
+    Vector3 markerpos = Vector3Add(Vector3{0.0f, 100.0f, 0.0f}, player.GetPlayerPosition());
     playerMarker = Ray{markerpos, Vector3{0.0f, -1.0f, 0.0f}};
 }
 
-void TerrainManager::DrawTerrains(SceneContext *sceneCtx, bool shadowPass)
+void TerrainManager::DrawTerrains(SceneContext *sceneCtx, bool shadowPass, Player &player)
 {
-    Player player = Player::getInstance();
     frustum.Extract();
     // std::cout << "[TERRAINS BEING DRAWN]:\n";
     for (auto &[pos, terrain] : terrains)
@@ -175,9 +173,8 @@ void TerrainManager::DrawTerrainGrid()
     DrawGrid(10, 50);
 }
 
-void TerrainManager::UpdateCollision()
+void TerrainManager::UpdateCollision(Player &player)
 {
-    Player player = Player::getInstance();
     Vector3 markerOrigin = Vector3Add(player.GetPlayerPosition(), Vector3{0.0f, 100.0f, 0.0f});
     playerMarker = Ray{markerOrigin, Vector3{0.0f, -1.0f, 0.0f}};
     for (auto it = terrains.begin(); it != terrains.end();)
@@ -194,7 +191,7 @@ void TerrainManager::UpdateCollision()
             {
                 Vector3 playerpos = player.GetPlayerPosition();
                 playerpos = Vector3{playerpos.x, meshHitInfo.point.y, playerpos.z};
-                Player::getInstance().setPlayerPosition(playerpos);
+                player.setPlayerPosition(playerpos);
                 playerMarker.position.x = playerpos.x;
                 playerMarker.position.z = playerpos.z;
                 break;

@@ -12,4 +12,4 @@ template <> struct hash<Vector2>
         return hx ^ (hy << 1);
     }
 };
-}
+} // namespace std

@@ -1,17 +1,17 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "raylib.h"
+#include "player.hpp"
 #include "renderContext.hpp"
-#include "shader.hpp"
-#include <memory>
-#include <unordered_map>
+#include "terrain.hpp"
 
 class Scene
 {
   private:
     SceneContext sceneCtx;
     shadowMapData shadowData;
+    Player player;
+    TerrainManager terrainManager;
 
   public:
     static Scene &getInstance()
@@ -21,6 +21,7 @@ class Scene
     }
 
     void InitScene();
+    void ProcessInput();
     void UpdateScene();
     void DrawScene();
 

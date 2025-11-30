@@ -6,24 +6,29 @@
 
 void Scene::InitScene()
 {
-    TerrainManager::LoadTerrains();
+    player.InitPlayer();
+    terrainManager.LoadTerrains(player);
     SetShaders();
     SetLights();
-    Player::InitPlayer();
+}
+
+void Scene::ProcessInput()
+{
+    player.PlayerMoves();
 }
 
 void Scene::UpdateScene()
 {
-    Player::UpdateCamera();
-    TerrainManager::UpdateCollision();
+    player.UpdateCamera();
+    terrainManager.UpdateCollision(player);
     UpdateShaders();
-    Player::UpdatePlayer();
+    player.UpdatePlayer();
 }
 
 void Scene::SetShaders()
 {
     // Terrain Shaders and Grass shaders
-    TerrainManager::setShaders(&sceneCtx);
+    terrainManager.setShaders(&sceneCtx);
 
     // Skybox Shaders
     auto rm = ResourceManager::getInstance();
@@ -67,7 +72,7 @@ void Scene::SetLights()
 void Scene::UpdateShaders()
 {
     float dt = GetFrameTime();
-    Vector3 cameraPos = Player::getInstance().camera.position;
+    Vector3 cameraPos = player.camera.position;
     float camera_position[3] = {cameraPos.x, cameraPos.y, cameraPos.z};
 
     sceneCtx.terrainShader->SetShaderValue("viewPos", &camera_position, SHADER_UNIFORM_VEC3);
@@ -133,8 +138,8 @@ void Scene::RenderShadowMap()
     shadowData.lightViewProj = MatrixMultiply(shadowData.lightView, shadowData.lightProj);
     sceneCtx.renderPass = 0;
 
-    Player::DrawPlayer(&sceneCtx);
-    TerrainManager::DrawTerrains(&sceneCtx, true);
+    player.DrawPlayer(&sceneCtx);
+    terrainManager.DrawTerrains(&sceneCtx, true, player);
     DrawCube(Vector3Zero(), 10, 40, 10, RAYWHITE);
 
     EndMode3D();
@@ -148,7 +153,7 @@ void Scene::DrawScene()
     auto &rm = ResourceManager::getInstance();
     ClearBackground(BLACK);
 
-    BeginMode3D(Player::camera);
+    BeginMode3D(player.camera);
 
     // Draw skybox
     rlDisableBackfaceCulling();
@@ -161,7 +166,7 @@ void Scene::DrawScene()
     rlEnableTexture(shadowData.shadowMap.depth.id);
     rlEnableShader(sceneCtx.grassShader->getShader().id);
     rlSetUniform(sceneCtx.grassShader->getUniformLoc("shadowMap"), &shadowData.shadowMapSlot, SHADER_UNIFORM_INT, 1);
-    TerrainManager::DrawTerrains(&sceneCtx, false);
+    terrainManager.DrawTerrains(&sceneCtx, false, player);
 
     rlActiveTextureSlot(shadowData.shadowMapSlot);
     rlEnableTexture(shadowData.shadowMap.depth.id);
@@ -170,7 +175,7 @@ void Scene::DrawScene()
 
     BeginShaderMode(sceneCtx.terrainShader->getShader());
     DrawCube(Vector3Zero(), 10, 40, 10, RAYWHITE);
-    Player::DrawPlayer(&sceneCtx);
+    player.DrawPlayer(&sceneCtx);
     EndShaderMode();
     EndMode3D();
     EndDrawing();

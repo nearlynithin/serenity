@@ -4,127 +4,117 @@
 #include "raymath.h"
 #include "rlgl.h"
 
-Camera3D Player::camera;
-float Player::mouseSensitivity;
-float Player::yaw;
-float Player::pitch;
-Camera3D Player::targetCamera;
-int Player::cameraLerpFactor = 15;
-
 void Player::InitPlayer()
 {
-    Player &player = Player::getInstance();
-    player.position = Vector3{0, 0, 0};
-    player.height = 3.0f;
-    player.speed = 5.0f;
-    player.animFPS = 1.0f / 120.0f; // 70 FPS
-    player.model = ResourceManager::getInstance().getModel("player");
-    Player::camera = {0};
+    position = Vector3{0, 5, 0};
+    height = 3.0f;
+    speed = 5.0f;
+    animFPS = 1.0f / 120.0f; // 70 FPS
+    model = ResourceManager::getInstance().getModel("player");
+    camera = {0};
     camera.position = {10.0f, 10.0f, 10.0f};
     camera.target = {0.0f, 0.0f, 0.0f};
     camera.up = {0.0f, 1.0f, 0.0f};
     camera.fovy = 70.0f;
     camera.projection = CAMERA_PERSPECTIVE;
-    player.moveLerpFactor = 4;
-    Player::mouseSensitivity = 0.003f;
-    Player::yaw = 0.0f;
-    Player::pitch = 0.0f;
+    moveLerpFactor = 4;
+    mouseSensitivity = 0.003f;
+    cameraLerpFactor = 20.0f;
+    yaw = 0.0f;
+    pitch = 0.0f;
 }
 
 Vector3 Player::GetPlayerPosition()
 {
-    return Player::getInstance().position;
+    return position;
 }
 
 // Listen for inputs
 void Player::PlayerMoves()
 {
-    Player &player = Player::getInstance();
     float delta = GetFrameTime();
-    player.speed = (IsKeyDown(KEY_LEFT_SHIFT)) ? PLAYER_RUN_SPEED : PLAYER_WALK_SPEED;
+    speed = (IsKeyDown(KEY_LEFT_SHIFT)) ? PLAYER_RUN_SPEED : PLAYER_WALK_SPEED;
 
     // reset at the start of movement handling
-    player.targetMoveDir = {0.0f, 0.0f, 0.0f};
+    targetMoveDir = {0.0f, 0.0f, 0.0f};
 
-    Vector3 forward = {sinf(Player::yaw), 0.0f, cosf(Player::yaw)};
-    Vector3 right = {cosf(Player::yaw), 0.0f, -sinf(Player::yaw)};
+    Vector3 forward = {sinf(yaw), 0.0f, cosf(yaw)};
+    Vector3 right = {cosf(yaw), 0.0f, -sinf(yaw)};
 
     forward = Vector3Normalize(forward);
     right = Vector3Normalize(right);
 
-    player.animIndex = 2;
+    animIndex = 2;
     if (IsKeyDown(KEY_W))
     {
-        player.targetMoveDir = Vector3Subtract(player.targetMoveDir, forward);
+        targetMoveDir = Vector3Subtract(targetMoveDir, forward);
     }
     if (IsKeyDown(KEY_A))
     {
-        player.targetMoveDir = Vector3Subtract(player.targetMoveDir, right);
+        targetMoveDir = Vector3Subtract(targetMoveDir, right);
     }
     if (IsKeyDown(KEY_S))
     {
-        player.targetMoveDir = Vector3Add(player.targetMoveDir, forward);
+        targetMoveDir = Vector3Add(targetMoveDir, forward);
     }
     if (IsKeyDown(KEY_D))
     {
-        player.targetMoveDir = Vector3Add(player.targetMoveDir, right);
+        targetMoveDir = Vector3Add(targetMoveDir, right);
     }
 
     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D))
     {
-        player.animIndex = 0;
+        animIndex = 0;
         if (IsKeyDown(KEY_LEFT_SHIFT))
-            player.animIndex = 1;
+            animIndex = 1;
     }
 
     if (IsKeyDown(KEY_SPACE))
-        player.animIndex = 3;
+        animIndex = 3;
 
-    if (Vector3Length(player.targetMoveDir) > 0.001f)
+    if (Vector3Length(targetMoveDir) > 0.001f)
     {
-        player.targetMoveDir = Vector3Normalize(player.targetMoveDir);
+        targetMoveDir = Vector3Normalize(targetMoveDir);
     }
-    Vector3 targetVel = Vector3Scale(player.targetMoveDir, player.speed);
-    float t = player.moveLerpFactor * delta;
+    Vector3 targetVel = Vector3Scale(targetMoveDir, speed);
+    float t = moveLerpFactor * delta;
 
-    player.moveVelocity.x += (targetVel.x - player.moveVelocity.x) * t;
-    player.moveVelocity.y += (targetVel.y - player.moveVelocity.y) * t;
-    player.moveVelocity.z += (targetVel.z - player.moveVelocity.z) * t;
+    moveVelocity.x += (targetVel.x - moveVelocity.x) * t;
+    moveVelocity.y += (targetVel.y - moveVelocity.y) * t;
+    moveVelocity.z += (targetVel.z - moveVelocity.z) * t;
 
-    player.position = Vector3Add(player.position, Vector3Scale(player.moveVelocity, delta));
-    if (Vector3Length(player.moveVelocity) > 0.001f)
+    position = Vector3Add(position, Vector3Scale(moveVelocity, delta));
+    if (Vector3Length(moveVelocity) > 0.001f)
     {
-        player.modelYaw = atan2f(player.moveVelocity.x, player.moveVelocity.z) * RAD2DEG;
+        modelYaw = atan2f(moveVelocity.x, moveVelocity.z) * RAD2DEG;
     }
 }
 
 void Player::UpdatePlayer()
 {
-    Player &player = Player::getInstance();
     float dt = GetFrameTime();
     auto rm = ResourceManager::getInstance();
     ModelAnim &anim = rm.getModelAnimation("player");
 
     // player.animTime += dt;
-    player.animTime += dt;
+    animTime += dt;
 
-    while (player.animTime >= player.animFPS)
+    while (animTime >= animFPS)
     {
-        player.animTime -= player.animFPS;
-        player.animCurrentFrame = (player.animCurrentFrame + 1) % anim.modelAnim->frameCount;
+        animTime -= animFPS;
+        animCurrentFrame = (animCurrentFrame + 1) % anim.modelAnim->frameCount;
     }
 
-    UpdateModelAnimation(player.model, anim.modelAnim[player.animIndex], player.animCurrentFrame);
+    UpdateModelAnimation(model, anim.modelAnim[animIndex], animCurrentFrame);
 }
 
 void Player::UpdateCamera()
 {
-    Player player = Player::getInstance();
-    Vector3 playerPos = player.GetPlayerPosition();
+    Vector3 playerPos = GetPlayerPosition();
     Vector2 mouseDelta = GetMouseDelta();
     float delta = GetFrameTime();
 
-    playerPos = Vector3Add(playerPos, Vector3{0.0f, player.height, 0.0f});
+    playerPos = Vector3Add(playerPos, Vector3{0.0f, height, 0.0f});
 
     yaw -= mouseDelta.x * mouseSensitivity;
     pitch += mouseDelta.y * mouseSensitivity;
@@ -135,49 +125,44 @@ void Player::UpdateCamera()
     Vector3 offset = {cosf(pitch) * sinf(yaw) * distance, sinf(pitch) * distance + 2.0f,
                       cosf(pitch) * cosf(yaw) * distance};
 
-    Player::targetCamera.position = Vector3Add(playerPos, offset);
-    Player::targetCamera.target = playerPos;
+    targetCamera.position = Vector3Add(playerPos, offset);
+    targetCamera.target = playerPos;
 
-    float t = Player::cameraLerpFactor * delta;
+    float t = cameraLerpFactor * delta;
 
     // Lerp position
-    Player::camera.position.x += (Player::targetCamera.position.x - Player::camera.position.x) * t;
-    Player::camera.position.y += (Player::targetCamera.position.y - Player::camera.position.y) * t;
-    Player::camera.position.z += (Player::targetCamera.position.z - Player::camera.position.z) * t;
+    camera.position.x += (targetCamera.position.x - camera.position.x) * t;
+    camera.position.y += (targetCamera.position.y - camera.position.y) * t;
+    camera.position.z += (targetCamera.position.z - camera.position.z) * t;
 
     // Lerp target
-    Player::camera.target.x += (Player::targetCamera.target.x - Player::camera.target.x) * t;
-    Player::camera.target.y += (Player::targetCamera.target.y - Player::camera.target.y) * t;
-    Player::camera.target.z += (Player::targetCamera.target.z - Player::camera.target.z) * t;
+    camera.target.x += (targetCamera.target.x - camera.target.x) * t;
+    camera.target.y += (targetCamera.target.y - camera.target.y) * t;
+    camera.target.z += (targetCamera.target.z - camera.target.z) * t;
 }
 
 void Player::setPlayerPosition(Vector3 pos)
 {
-    Player &player = Player::getInstance();
-    player.position = pos;
+    position = pos;
 }
 
 void Player::DrawPlayer(SceneContext *sceneCtx)
 {
-    Player &player = Player::getInstance();
-
-    for (int i = 0; i < player.model.materialCount; i++)
+    for (int i = 0; i < model.materialCount; i++)
     {
-        player.model.materials[i].shader = sceneCtx->terrainShader->getShader();
+        model.materials[i].shader = sceneCtx->terrainShader->getShader();
     }
-    DrawModelEx(player.model, player.position, Vector3{0.0f, 1.0f, 0.0f}, player.modelYaw, Vector3{2.0f, 2.0f, 2.0f},
-                WHITE);
-    DrawSkeleton(&player.model);
+    DrawModelEx(model, position, Vector3{0.0f, 1.0f, 0.0f}, modelYaw, Vector3{2.0f, 2.0f, 2.0f}, WHITE);
+    DrawSkeleton(&model);
 }
 
 void Player::DrawSkeleton(Model *model)
 {
     auto &rm = ResourceManager::getInstance();
-    Player &player = Player::getInstance();
     ModelAnim &anims = rm.getModelAnimation("player");
 
-    int animId = player.animIndex;
-    int frame = player.animCurrentFrame;
+    int animId = animIndex;
+    int frame = animCurrentFrame;
 
     int animBoneCount = anims.modelAnim[animId].boneCount;
     int animFrameCount = anims.modelAnim[animId].frameCount;
@@ -185,7 +170,7 @@ void Player::DrawSkeleton(Model *model)
     if (frame >= animFrameCount)
         frame = animFrameCount - 1;
 
-    Matrix playerMatrix = MatrixTranslate(player.position.x, player.position.y, player.position.z);
+    Matrix playerMatrix = MatrixTranslate(position.x, position.y, position.z);
 
     for (int i = 0; i < animBoneCount; i++)
     {

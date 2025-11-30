@@ -31,25 +31,20 @@ class Player
     float animFPS;
 
   public:
-    static Camera3D camera;
-    static Camera3D targetCamera;
-    static float mouseSensitivity;
-    static float yaw;
-    static float pitch;
-    static int cameraLerpFactor;
-    static Player &getInstance()
-    {
-        static Player instance;
-        return instance;
-    }
-    static void InitPlayer();
-    static void DrawPlayer(SceneContext *sceneCtx);
-    static Vector3 GetPlayerPosition();
-    static void PlayerMoves();
-    static void UpdateCamera();
-    static void setPlayerPosition(Vector3 pos);
-    static void UpdatePlayer();
-    static void DrawSkeleton(Model *model);
+    Camera3D camera;
+    Camera3D targetCamera;
+    float mouseSensitivity;
+    float yaw;
+    float pitch;
+    int cameraLerpFactor;
+    void InitPlayer();
+    void DrawPlayer(SceneContext *sceneCtx);
+    Vector3 GetPlayerPosition();
+    void PlayerMoves();
+    void UpdateCamera();
+    void setPlayerPosition(Vector3 pos);
+    void UpdatePlayer();
+    void DrawSkeleton(Model *model);
 };
 
 #endif

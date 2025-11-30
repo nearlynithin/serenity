@@ -63,8 +63,7 @@ void Game::RunLoop()
 
 void Game::ProcessInput()
 {
-    // will be scene inputs later on
-    Player::PlayerMoves();
+    Scene::getInstance().ProcessInput();
 }
 
 void Game::UpdateGame()
@@ -77,6 +76,5 @@ void Game::GenerateOutput()
     Scene::getInstance().DrawScene();
 
     DrawFPS(20, 20);
-
     EndDrawing();
 }
