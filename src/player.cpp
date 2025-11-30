@@ -6,11 +6,13 @@
 
 void Player::InitPlayer()
 {
+    auto rm = ResourceManager::getInstance();
     position = Vector3{0, 5, 0};
     height = 3.0f;
     speed = 5.0f;
     animFPS = 1.0f / 120.0f; // 70 FPS
-    model = ResourceManager::getInstance().getModel("player");
+    model = rm.getModel("player");
+    anims = rm.getModelAnimation("player");
     camera = {0};
     camera.position = {10.0f, 10.0f, 10.0f};
     camera.target = {0.0f, 0.0f, 0.0f};
@@ -22,6 +24,9 @@ void Player::InitPlayer()
     cameraLerpFactor = 20.0f;
     yaw = 0.0f;
     pitch = 0.0f;
+    modelScale = 2.0f;
+    boneWorldPos = std::make_unique<Vector3[]>(model.boneCount);
+    boneParents = std::make_unique<int[]>(model.boneCount);
 }
 
 Vector3 Player::GetPlayerPosition()
@@ -93,19 +98,16 @@ void Player::PlayerMoves()
 void Player::UpdatePlayer()
 {
     float dt = GetFrameTime();
-    auto rm = ResourceManager::getInstance();
-    ModelAnim &anim = rm.getModelAnimation("player");
-
-    // player.animTime += dt;
     animTime += dt;
 
     while (animTime >= animFPS)
     {
         animTime -= animFPS;
-        animCurrentFrame = (animCurrentFrame + 1) % anim.modelAnim->frameCount;
+        animCurrentFrame = (animCurrentFrame + 1) % anims.modelAnim[animIndex].frameCount;
     }
 
-    UpdateModelAnimation(model, anim.modelAnim[animIndex], animCurrentFrame);
+    updateBoneWordldPositions(animCurrentFrame);
+    UpdateModelAnimation(model, anims.modelAnim[animIndex], animCurrentFrame);
 }
 
 void Player::UpdateCamera()
@@ -153,39 +155,34 @@ void Player::DrawPlayer(SceneContext *sceneCtx)
         model.materials[i].shader = sceneCtx->terrainShader->getShader();
     }
     DrawModelEx(model, position, Vector3{0.0f, 1.0f, 0.0f}, modelYaw, Vector3{2.0f, 2.0f, 2.0f}, WHITE);
-    DrawSkeleton(&model);
+    DrawSkeleton();
 }
 
-void Player::DrawSkeleton(Model *model)
+void Player::DrawSkeleton()
 {
-    auto &rm = ResourceManager::getInstance();
-    ModelAnim &anims = rm.getModelAnimation("player");
-
-    int animId = animIndex;
-    int frame = animCurrentFrame;
-
-    int animBoneCount = anims.modelAnim[animId].boneCount;
-    int animFrameCount = anims.modelAnim[animId].frameCount;
-
-    if (frame >= animFrameCount)
-        frame = animFrameCount - 1;
-
-    Matrix playerMatrix = MatrixTranslate(position.x, position.y, position.z);
-
-    for (int i = 0; i < animBoneCount; i++)
+    for (int i = 0; i < model.boneCount; i++)
     {
-        Vector3 local = anims.modelAnim[animId].framePoses[frame][i].translation;
-        Vector3 bonePos = Vector3Transform(local, playerMatrix);
+        DrawCube(boneWorldPos[i], 0.05f, 0.05f, 0.05f, RED);
 
-        DrawCube(bonePos, 0.05f, 0.05f, 0.05f, RED);
-
-        int parent = anims.modelAnim[animId].bones[i].parent;
-        if (parent >= 0 && parent < animBoneCount)
+        int parent = boneParents[i];
+        if (parent >= 0)
         {
-            Vector3 localParent = anims.modelAnim[animId].framePoses[frame][parent].translation;
-            Vector3 worldParent = Vector3Transform(localParent, playerMatrix);
-
-            DrawLine3D(bonePos, worldParent, RED);
+            DrawLine3D(boneWorldPos[i], boneWorldPos[parent], RED);
         }
+    }
+}
+
+void Player::updateBoneWordldPositions(int frame)
+{
+    Matrix mT = MatrixTranslate(position.x, position.y, position.z);
+    Matrix mR = MatrixRotateY(modelYaw * DEG2RAD);
+    Matrix mS = MatrixScale(modelScale, modelScale, modelScale);
+    modelMatrix = MatrixMultiply(MatrixMultiply(mS, mR), mT);
+
+    for (int i = 0; i < model.boneCount; i++)
+    {
+        Vector3 local = anims.modelAnim[animIndex].framePoses[frame][i].translation;
+        boneWorldPos[i] = Vector3Transform(local, modelMatrix);
+        boneParents[i] = anims.modelAnim[animIndex].bones[i].parent;
     }
 }

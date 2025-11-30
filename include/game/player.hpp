@@ -3,6 +3,8 @@
 
 #include "raylib.h"
 #include "renderContext.hpp"
+#include "resource.hpp"
+#include <vector>
 
 #define VIEW_BOX_WIDTH 40
 #define VIEW_BOX_HEIGHT 30
@@ -21,22 +23,29 @@ class Player
     Vector3 targetMoveDir;
     int moveLerpFactor;
     Vector3 moveVelocity;
-    float modelYaw;
+
     Model model;
-    float speed;
-    float height;
+    Matrix modelMatrix;
+    float modelScale;
+    std::unique_ptr<Vector3[]> boneWorldPos;
+    std::unique_ptr<int[]> boneParents;
+    float modelYaw;
+    ModelAnim anims;
+    float animFPS;
     int animCurrentFrame;
     int animIndex;
     float animTime;
-    float animFPS;
 
-  public:
-    Camera3D camera;
-    Camera3D targetCamera;
+    float speed;
+    float height;
     float mouseSensitivity;
     float yaw;
     float pitch;
     int cameraLerpFactor;
+    Camera3D targetCamera;
+
+  public:
+    Camera3D camera;
     void InitPlayer();
     void DrawPlayer(SceneContext *sceneCtx);
     Vector3 GetPlayerPosition();
@@ -44,7 +53,8 @@ class Player
     void UpdateCamera();
     void setPlayerPosition(Vector3 pos);
     void UpdatePlayer();
-    void DrawSkeleton(Model *model);
+    void DrawSkeleton();
+    void updateBoneWordldPositions(int frame);
 };
 
 #endif
