@@ -34,6 +34,7 @@ void ResourceLoader::LoadAllModels()
                      TEXTURE_FILTER_TRILINEAR);
     resourceManager.LoadSkyboxModel("skybox", 1.0f, 1.0f, 1.0f);
     resourceManager.Loadmodel("player", "assets/player.glb");
+    resourceManager.Loadmodel("katana", "assets/katana.glb");
 
     // Loading model animations
     resourceManager.loadModelAnimation("player", "assets/player.glb");

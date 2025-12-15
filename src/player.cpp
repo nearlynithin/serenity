@@ -27,6 +27,8 @@ void Player::InitPlayer()
     modelScale = 2.0f;
     boneWorldPos = std::make_unique<Vector3[]>(model.boneCount);
     boneParents = std::make_unique<int[]>(model.boneCount);
+
+    katana.InitKatana();
 }
 
 Vector3 Player::GetPlayerPosition()
@@ -156,6 +158,7 @@ void Player::DrawPlayer(SceneContext *sceneCtx)
     }
     DrawModelEx(model, position, Vector3{0.0f, 1.0f, 0.0f}, modelYaw, Vector3{2.0f, 2.0f, 2.0f}, WHITE);
     DrawSkeleton();
+    katana.Draw(anims.modelAnim[animIndex].framePoses[animCurrentFrame][45], model.bindPose[45].rotation, modelMatrix);
 }
 
 void Player::DrawSkeleton()

@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "renderContext.hpp"
 #include "resource.hpp"
+#include "weapon.hpp"
 #include <vector>
 
 #define VIEW_BOX_WIDTH 40
@@ -25,6 +26,7 @@ class Player
     Vector3 moveVelocity;
 
     Model model;
+    Weapon katana;
     Matrix modelMatrix;
     float modelScale;
     std::unique_ptr<Vector3[]> boneWorldPos;

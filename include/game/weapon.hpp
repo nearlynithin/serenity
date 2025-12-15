@@ -1,0 +1,30 @@
+#ifndef WEAPON_H
+#define WEAPON_H
+
+#include "game/resource.hpp"
+#include "raylib.h"
+
+class Weapon
+{
+  private:
+    Model *model;
+    Matrix modelMatrix;
+    Vector3 position;
+    float scale;
+
+    ModelAnim anims;
+    float animFPS;
+    int animCurrentFrame;
+    int animIndex;
+    float animTime;
+    float xRotation;
+    float yRotation;
+    float zRotation;
+
+  public:
+    void InitKatana();
+    void Draw(Transform &transform, Quaternion &rotation, Matrix &worldMatrix);
+    Vector3 getPosition();
+};
+
+#endif
