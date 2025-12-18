@@ -25,7 +25,6 @@ endif()
 set(RAYLIB_INCLUDE_DIR "${RAYLIB_DIR}/include")
 set(RAYLIB_LIB_DIR "${RAYLIB_DIR}/lib")
 
-
 # Collect source files (exclude any backup or temporary files)
 file(GLOB_RECURSE SOURCES 
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
@@ -75,12 +74,25 @@ if(MSVC)
         target_link_options(${PROJECT_NAME} PRIVATE /DEBUG)
     endif()
 else()
-    target_compile_options(${PROJECT_NAME} PRIVATE 
+    target_compile_options(${PROJECT_NAME} PRIVATE
         -Wpedantic
         -Wno-unused-parameter
     )
+
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        target_compile_options(${PROJECT_NAME} PRIVATE -g -O0)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+            target_compile_options(${PROJECT_NAME} PRIVATE
+                -g
+                -O0
+                -fsanitize=address,undefined
+                -fno-omit-frame-pointer
+            )
+            target_link_options(${PROJECT_NAME} PRIVATE
+                -fsanitize=address,undefined
+            )
+        else()
+            target_compile_options(${PROJECT_NAME} PRIVATE -g -O0)
+        endif()
     elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
         target_compile_options(${PROJECT_NAME} PRIVATE -O3 -DNDEBUG)
     endif()
