@@ -8,7 +8,7 @@ Vector2 randomGradient(int ix, int iy)
 {
     const unsigned w = 8 * sizeof(unsigned);
     const unsigned s = w / 2;
-    unsigned a = ix, b = iy;
+    unsigned long int a = ix, b = iy;
 
     a *= 3284157443;
     b ^= a << s | a >> (w - s);
