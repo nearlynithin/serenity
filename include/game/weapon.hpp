@@ -2,6 +2,7 @@
 #define WEAPON_H
 
 #include "game/resource.hpp"
+#include "game/renderContext.hpp"
 #include "raylib.h"
 
 class Weapon
@@ -23,7 +24,7 @@ class Weapon
 
   public:
     void InitKatana();
-    void Draw(Transform &transform, Quaternion &rotation, Matrix &worldMatrix);
+    void Draw(Transform &transform, Quaternion &rotation, Matrix &worldMatrix, SceneContext *sceneCtx);
     Vector3 getPosition();
 };
 

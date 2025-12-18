@@ -76,8 +76,9 @@ void Player::PlayerMoves()
             animIndex = 1;
     }
 
-    if (IsKeyDown(KEY_SPACE))
+    if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)){
         animIndex = 3;
+    }
 
     if (Vector3Length(targetMoveDir) > 0.001f)
     {
@@ -157,8 +158,7 @@ void Player::DrawPlayer(SceneContext *sceneCtx)
         model.materials[i].shader = sceneCtx->terrainShader->getShader();
     }
     DrawModelEx(model, position, Vector3{0.0f, 1.0f, 0.0f}, modelYaw, Vector3{2.0f, 2.0f, 2.0f}, WHITE);
-    DrawSkeleton();
-    katana.Draw(anims.modelAnim[animIndex].framePoses[animCurrentFrame][45], model.bindPose[45].rotation, modelMatrix);
+    katana.Draw(anims.modelAnim[animIndex].framePoses[animCurrentFrame][45], model.bindPose[45].rotation, modelMatrix, sceneCtx);
 }
 
 void Player::DrawSkeleton()

@@ -2,6 +2,7 @@
 #include "game/resource.hpp"
 #include "raymath.h"
 
+
 void Weapon::InitKatana()
 {
     model = &ResourceManager::getInstance().getModel("katana");
@@ -13,7 +14,7 @@ void Weapon::InitKatana()
     animTime = 0.0f;
 }
 
-void Weapon::Draw(Transform &transform, Quaternion &rotation, Matrix &worldMatrix)
+void Weapon::Draw(Transform &transform, Quaternion &rotation, Matrix &worldMatrix, SceneContext *sceneCtx)
 {
     Quaternion inRotation = rotation;
     Quaternion outRotation = transform.rotation;
@@ -24,6 +25,10 @@ void Weapon::Draw(Transform &transform, Quaternion &rotation, Matrix &worldMatri
         matrixTransform, MatrixTranslate(transform.translation.x, transform.translation.y, transform.translation.z));
     matrixTransform = MatrixMultiply(matrixTransform, worldMatrix);
 
+    for (int i = 0; i < model->materialCount; i++)
+    {
+        model->materials[i].shader = sceneCtx->terrainShader->getShader();
+    }
     DrawMesh(model->meshes[0], model->materials[1], matrixTransform);
 }
 

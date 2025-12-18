@@ -66,7 +66,7 @@ void Scene::SetLights()
     sceneCtx.lightCam.projection = CAMERA_ORTHOGRAPHIC;
     sceneCtx.lightCam.up = Vector3{0.0f, 1.0f, 0.0f};
     sceneCtx.lightCam.fovy = 75.0f; // Increased FOV for better coverage
-    sceneCtx.lightColor = ColorNormalize(YELLOW);
+    sceneCtx.lightColor = ColorNormalize(PURPLE);
 }
 
 void Scene::UpdateShaders()
