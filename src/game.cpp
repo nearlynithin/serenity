@@ -1,38 +1,32 @@
 #include "game/game.hpp"
-#include "game/player.hpp"
 #include "game/resource.hpp"
 #include "game/scene.hpp"
-#include "game/terrain.hpp"
 #include "raylib.h"
-#include "raymath.h"
 #include "rlgl.h"
-#include <iostream>
 
 Game::Game()
   : screenWidth(1280),
     screenHeight(720),
-    mIsRunning(false),
-    time(GetTime())
-{
-}
+    mIsRunning(false)
+{}
 
 bool Game::Initialize()
 {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT | FLAG_WINDOW_UNDECORATED);
     InitWindow(screenWidth, screenHeight, "Serenity");
+    time = GetTime();
     DisableCursor();
 
-    ResourceLoader::LoadAllTextures();
-    ResourceLoader::LoadAllShaders();
-    ResourceLoader::LoadAllModels();
+    resource.LoadAllTextures();
+    resource.LoadAllShaders();
+    resource.LoadAllModels();
 
-    Scene::getInstance().InitScene();
+    scene.InitScene(&resource);
 
     if (IsWindowReady())
     {
         mIsRunning = true;
-    }
-    else
+    } else
     {
         mIsRunning = false;
     }
@@ -42,7 +36,7 @@ bool Game::Initialize()
 void Game::Shutdown()
 {
     // Destroying resource manager
-    ResourceManager::getInstance().UnloadAll();
+    resource.UnloadAll();
 
     if (mIsRunning)
     {
@@ -63,18 +57,22 @@ void Game::RunLoop()
 
 void Game::ProcessInput()
 {
-    Scene::getInstance().ProcessInput();
+    scene.ProcessInput();
 }
 
 void Game::UpdateGame()
 {
-    Scene::getInstance().UpdateScene();
+    physics.Update(&scene);
+    scene.UpdateScene();
 }
 
 void Game::GenerateOutput()
 {
-    Scene::getInstance().DrawScene();
+    BeginDrawing();
+
+    scene.DrawScene(&resource);
 
     DrawFPS(20, 20);
+
     EndDrawing();
 }

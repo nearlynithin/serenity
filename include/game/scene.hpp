@@ -8,28 +8,22 @@
 class Scene
 {
   private:
-    SceneContext sceneCtx;
+    SceneContext sceneCtx{};
     shadowMapData shadowData;
     Player player;
     TerrainManager terrainManager;
 
   public:
-    static Scene &getInstance()
-    {
-        static Scene instance;
-        return instance;
-    }
-
-    void InitScene();
+    void InitScene(ResourceManager *rm);
     void ProcessInput();
     void UpdateScene();
-    void DrawScene();
+    void DrawScene(ResourceManager *rm);
 
     void SetModels();
     void SetLights();
-    void SetShaders();
+    void SetShaders(ResourceManager *rm);
     void UpdateShaders();
-    void InitShadowMapping();
+    void InitShadowMapping(ResourceManager *rm);
     void RenderShadowMap();
     void UpdateLightSpaceMatrix();
     void SetTerrainShaderMatrices();

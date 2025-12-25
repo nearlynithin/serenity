@@ -25,6 +25,7 @@ class Player
     int moveLerpFactor;
     Vector3 moveVelocity;
 
+    ResourceManager *rm;
     Model model;
     Weapon katana;
     Matrix modelMatrix;
@@ -32,7 +33,7 @@ class Player
     std::unique_ptr<Vector3[]> boneWorldPos;
     std::unique_ptr<int[]> boneParents;
     float modelYaw;
-    ModelAnim anims;
+    ModelAnim *anims;
     float animFPS;
     int animCurrentFrame;
     int animIndex;
@@ -48,7 +49,7 @@ class Player
 
   public:
     Camera3D camera;
-    void InitPlayer();
+    void InitPlayer(ResourceManager *rm);
     void DrawPlayer(SceneContext *sceneCtx);
     Vector3 GetPlayerPosition();
     void PlayerMoves();

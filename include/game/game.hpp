@@ -1,12 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "game/resource.hpp"
 #include "game/scene.hpp"
-#include "game/terrain.hpp"
+#include "game/physics.hpp"
 #include "raylib.h"
-#include <memory>
-#include <vector>
 
 class Game
 {
@@ -16,6 +13,10 @@ class Game
     bool Initialize();
     void RunLoop();
     void Shutdown();
+
+    Scene scene;
+    PhysicsSystem physics;
+    ResourceManager resource;
 
   private:
     void ProcessInput();

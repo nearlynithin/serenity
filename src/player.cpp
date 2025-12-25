@@ -2,33 +2,36 @@
 #include "game/resource.hpp"
 #include "raylib.h"
 #include "raymath.h"
+#include <assert.h>
 #include "rlgl.h"
 
-void Player::InitPlayer()
+void Player::InitPlayer(ResourceManager *rm)
 {
-    auto rm = ResourceManager::getInstance();
     position = Vector3{0, 5, 0};
     height = 3.0f;
     speed = 5.0f;
     animFPS = 1.0f / 120.0f; // 70 FPS
-    model = rm.getModel("player");
-    anims = rm.getModelAnimation("player");
+    model = rm->getModel("player");
+    anims = &rm->getModelAnimation("player");
     camera = {0};
     camera.position = {10.0f, 10.0f, 10.0f};
     camera.target = {0.0f, 0.0f, 0.0f};
     camera.up = {0.0f, 1.0f, 0.0f};
     camera.fovy = 70.0f;
     camera.projection = CAMERA_PERSPECTIVE;
+    targetCamera = camera;
     moveLerpFactor = 4;
     mouseSensitivity = 0.003f;
     cameraLerpFactor = 20.0f;
     yaw = 0.0f;
     pitch = 0.0f;
     modelScale = 2.0f;
+    animCurrentFrame = 0;
+    animTime = 0.0f;
     boneWorldPos = std::make_unique<Vector3[]>(model.boneCount);
     boneParents = std::make_unique<int[]>(model.boneCount);
 
-    katana.InitKatana();
+    katana.InitKatana(rm);
 }
 
 Vector3 Player::GetPlayerPosition()
@@ -106,11 +109,11 @@ void Player::UpdatePlayer()
     while (animTime >= animFPS)
     {
         animTime -= animFPS;
-        animCurrentFrame = (animCurrentFrame + 1) % anims.modelAnim[animIndex].frameCount;
+        animCurrentFrame = (animCurrentFrame + 1) % anims->modelAnim[animIndex].frameCount;
     }
 
     updateBoneWordldPositions(animCurrentFrame);
-    UpdateModelAnimation(model, anims.modelAnim[animIndex], animCurrentFrame);
+    UpdateModelAnimation(model, anims->modelAnim[animIndex], animCurrentFrame);
 }
 
 void Player::UpdateCamera()
@@ -158,7 +161,7 @@ void Player::DrawPlayer(SceneContext *sceneCtx)
         model.materials[i].shader = sceneCtx->terrainShader->getShader();
     }
     DrawModelEx(model, position, Vector3{0.0f, 1.0f, 0.0f}, modelYaw, Vector3{2.0f, 2.0f, 2.0f}, WHITE);
-    katana.Draw(anims.modelAnim[animIndex].framePoses[animCurrentFrame][45], model.bindPose[45].rotation, modelMatrix, sceneCtx);
+    katana.Draw(anims->modelAnim[animIndex].framePoses[animCurrentFrame][45], model.bindPose[45].rotation, modelMatrix, sceneCtx);
 }
 
 void Player::DrawSkeleton()
@@ -184,8 +187,8 @@ void Player::updateBoneWordldPositions(int frame)
 
     for (int i = 0; i < model.boneCount; i++)
     {
-        Vector3 local = anims.modelAnim[animIndex].framePoses[frame][i].translation;
+        Vector3 local = anims->modelAnim[animIndex].framePoses[frame][i].translation;
         boneWorldPos[i] = Vector3Transform(local, modelMatrix);
-        boneParents[i] = anims.modelAnim[animIndex].bones[i].parent;
+        boneParents[i] = anims->modelAnim[animIndex].bones[i].parent;
     }
 }

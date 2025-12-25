@@ -32,12 +32,12 @@ class Terrain
     Grass grass;
 
   public:
-    Terrain(float offestx, float offesty);
+    Terrain(float offestx, float offesty, ResourceManager *rm);
     virtual ~Terrain();
     Model &getTerrain();
     Grass &getGrass();
     Vector3 getPosition();
-    void setTexture();
+    void setTexture(ResourceManager *rm);
     BoundingBox &getBBox();
     void DrawGrass(Camera3D &camera, SceneContext *sceneCtx);
 };
@@ -47,6 +47,7 @@ class TerrainManager
   private:
     std::unordered_map<Vector2, std::unique_ptr<Terrain>> terrains;
     std::unordered_set<Vector2> cords;
+    ResourceManager *rm;
     Vector2 currentTerrain;
     RayCollision collision;
     Ray playerMarker;
@@ -54,8 +55,8 @@ class TerrainManager
     float ambient[4] = {0.2f, 0.2f, 0.2f, 1.0f};
 
   public:
-    void LoadTerrains(Player &player);
-    void setShaders(SceneContext *sceneCtx);
+    void LoadTerrains(Player &player, ResourceManager *rm);
+    void setShaders(SceneContext *sceneCtx, ResourceManager *rm);
     void DrawTerrains(SceneContext *sceneCtx, bool shadowPass, Player &player);
     void DrawTerrainGrid();
     void UpdateCollision(Player &player);

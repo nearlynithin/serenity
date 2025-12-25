@@ -23,7 +23,7 @@ class Weapon
     float zRotation;
 
   public:
-    void InitKatana();
+    void InitKatana(ResourceManager *rm);
     void Draw(Transform &transform, Quaternion &rotation, Matrix &worldMatrix, SceneContext *sceneCtx);
     Vector3 getPosition();
 };

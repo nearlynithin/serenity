@@ -3,9 +3,9 @@
 #include "raymath.h"
 
 
-void Weapon::InitKatana()
+void Weapon::InitKatana(ResourceManager *rm)
 {
-    model = &ResourceManager::getInstance().getModel("katana");
+    model = &rm->getModel("katana");
     scale = 2.0f;
     position = Vector3{10.0f, 5.0f, 10.0f};
     animIndex = 0;

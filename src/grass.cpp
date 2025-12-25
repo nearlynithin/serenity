@@ -4,10 +4,9 @@
 #include "perlin.hpp"
 #include "raylib.h"
 
-void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightFactor, float width, float height)
+void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightFactor, float width, float height, ResourceManager *rm)
 {
-    auto rm = ResourceManager::getInstance();
-    grass = rm.getModel("grass");
+    grass = &rm->getModel("grass");
     transforms = (Matrix *)RL_CALLOC(MAX_INSTANCES, sizeof(Matrix));
 
     const float stepSize = 0.4f;
@@ -38,7 +37,7 @@ void Grass::InitGrass(float offset_x, float offset_y, float noise, float heightF
             transforms[instanceCount++] = MatrixMultiply(matScale, matTrans);
         }
     }
-    matInstances = grass.materials[0];
+    matInstances = grass->materials[0];
     totalInstances = instanceCount;
 }
 
@@ -68,12 +67,12 @@ void Grass::DrawGrass(Camera3D &camera, SceneContext *sceneCtx)
     sceneCtx->grassShader->SetShaderValue("fogDensity", &fogDensity, SHADER_UNIFORM_FLOAT);
     sceneCtx->grassShader->SetShaderValue("renderPass", &sceneCtx->renderPass, SHADER_UNIFORM_INT);
     matInstances.shader = sceneCtx->grassShader->getShader();
-    DrawMeshInstanced(grass.meshes[0], matInstances, transforms, totalInstances);
+    DrawMeshInstanced(grass->meshes[0], matInstances, transforms, totalInstances);
 }
 
 void Grass::UnloadGrass()
 {
     RL_FREE(transforms);
     UnloadMaterial(matInstances);
-    UnloadModel(grass);
+    UnloadModel(*grass);
 }

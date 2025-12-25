@@ -26,13 +26,13 @@ class ResourceManager
     std::unordered_map<std::string, std::shared_ptr<gfx::Shader>> shaders;
     std::unordered_map<std::string, Model> models;
     std::unordered_map<std::string, ModelAnim> modelAnimations;
+    RenderTexture2D shadowMap;
 
   public:
-    static ResourceManager &getInstance()
-    {
-        static ResourceManager instance;
-        return instance;
-    }
+
+    void LoadAllShaders();
+    void LoadAllTextures();
+    void LoadAllModels();
 
     // Texture Manager
     void LoadTex(const std::string &textureName, const std::string &filepath)
@@ -54,40 +54,42 @@ class ResourceManager
         return it->second;
     }
 
-    RenderTexture2D LoadShadowmapRenderTexture(int width, int height)
+    void LoadShadowmapRenderTexture(int width, int height)
     {
-        RenderTexture2D target = {0};
+        shadowMap.id = rlLoadFramebuffer(); // Load an empty framebuffer
+        shadowMap.texture.width = width;
+        shadowMap.texture.height = height;
 
-        target.id = rlLoadFramebuffer(); // Load an empty framebuffer
-        target.texture.width = width;
-        target.texture.height = height;
-
-        if (target.id > 0)
+        if (shadowMap.id > 0)
         {
-            rlEnableFramebuffer(target.id);
+            rlEnableFramebuffer(shadowMap.id);
 
             // Create depth texture
             // We don't need a color texture for the shadowmap
-            target.depth.id = rlLoadTextureDepth(width, height, false);
-            target.depth.width = width;
-            target.depth.height = height;
-            target.depth.format = 19; // DEPTH_COMPONENT_24BIT?
-            target.depth.mipmaps = 1;
+            shadowMap.depth.id = rlLoadTextureDepth(width, height, false);
+            shadowMap.depth.width = width;
+            shadowMap.depth.height = height;
+            shadowMap.depth.format = 19; // DEPTH_COMPONENT_24BIT?
+            shadowMap.depth.mipmaps = 1;
 
             // Attach depth texture to FBO
-            rlFramebufferAttach(target.id, target.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
+            rlFramebufferAttach(shadowMap.id, shadowMap.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
 
             // Check if fbo is complete with attachments (valid)
-            if (rlFramebufferComplete(target.id))
-                std::cout << "FBO: [ID " << target.id << "] Framebuffer object created successfully\n";
+            if (rlFramebufferComplete(shadowMap.id))
+                std::cout << "FBO: [ID " << shadowMap.id << "] Framebuffer object created successfully\n";
 
             rlDisableFramebuffer();
         }
         else
             std::cerr << "FBO: Framebuffer object can not be created\n";
-
-        return target;
     }
+
+    RenderTexture2D *getShadowMap()
+    {
+        return &shadowMap;
+    }
+
 
     // Shader Manager
     void Loadshader(const std::string &shaderName, const std::string &vertexShaderPath,
@@ -197,19 +199,6 @@ class ResourceManager
             std::cout << "Models unloaded\n";
         }
     }
-};
-
-class ResourceLoader
-{
-  public:
-    static RenderTexture2D &getShadowMap()
-    {
-        static RenderTexture2D shadowMap;
-        return shadowMap;
-    }
-    static void LoadAllShaders();
-    static void LoadAllTextures();
-    static void LoadAllModels();
 };
 
 #endif

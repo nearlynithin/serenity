@@ -7,16 +7,8 @@
 #include "rlFrustum.h"
 #include <stdlib.h>
 #include <string.h>
-#include <unordered_set>
 
-// std::unordered_map<Vector2, std::unique_ptr<Terrain>> TerrainManager::terrains;
-// Vector2 TerrainManager::currentTerrain;
-// std::unordered_set<Vector2> TerrainManager::cords;
-// RayCollision TerrainManager::collision;
-// Ray TerrainManager::playerMarker;
-// RLFrustum TerrainManager::frustum;
-
-Terrain::Terrain(float offsetx, float offsety)
+Terrain::Terrain(float offsetx, float offsety, ResourceManager *rm)
   : resX(RES_X),
     resY(RES_Y),
     position(Vector3{WIDTH / 2 + offsetx, 0, HEIGHT / 2 + offsety})
@@ -40,8 +32,8 @@ Terrain::Terrain(float offsetx, float offsety)
     bbox.min = Vector3Add(bbox.min, position);
     bbox.max = Vector3Add(bbox.max, position);
     terrain.transform = MatrixTranslate(position.x, position.y, position.z);
-    grass.InitGrass(offsetx, offsety, NOISE_SCALE, HEIGHT_FACTOR, WIDTH, HEIGHT);
-    setTexture();
+    grass.InitGrass(offsetx, offsety, NOISE_SCALE, HEIGHT_FACTOR, WIDTH, HEIGHT, rm);
+    setTexture(rm);
 }
 Model &Terrain::getTerrain()
 {
@@ -57,18 +49,17 @@ Vector3 Terrain::getPosition()
     return position;
 }
 
-void Terrain::setTexture()
+void Terrain::setTexture(ResourceManager *rm)
 {
-    Texture2D tex = ResourceManager::getInstance().GetTexture("terrainTexture");
+    Texture2D &tex = rm->GetTexture("terrainTexture");
     terrain.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = tex;
     GenTextureMipmaps(&tex);
     SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
 }
 
-void TerrainManager::setShaders(SceneContext *sceneCtx)
+void TerrainManager::setShaders(SceneContext *sceneCtx, ResourceManager *rm)
 {
-    auto rm = ResourceManager::getInstance();
-    sceneCtx->terrainShader = rm.getShader("terrainShader");
+    sceneCtx->terrainShader = rm->getShader("terrainShader");
     sceneCtx->terrainShader->addUniform("viewPos");
     sceneCtx->terrainShader->addUniform("lightDir");
     sceneCtx->terrainShader->addUniform("lightColor");
@@ -79,7 +70,7 @@ void TerrainManager::setShaders(SceneContext *sceneCtx)
     sceneCtx->terrainShader->SetShaderValue("ambient", &sceneCtx->ambient, SHADER_UNIFORM_VEC4);
 
     // grass Shaders
-    sceneCtx->grassShader = rm.getShader("grassShader");
+    sceneCtx->grassShader = rm->getShader("grassShader");
     sceneCtx->grassShader->addUniform("mvp");
     sceneCtx->grassShader->addUniform("viewPos");
     sceneCtx->grassShader->addUniform("time");
@@ -114,7 +105,7 @@ Terrain::~Terrain()
 }
 
 // Terrain manager
-void TerrainManager::LoadTerrains(Player &player)
+void TerrainManager::LoadTerrains(Player &player, ResourceManager *rm)
 {
     for (int i = -MAX_TERRAIN / 2; i < MAX_TERRAIN / 2; i++)
     {
@@ -123,7 +114,7 @@ void TerrainManager::LoadTerrains(Player &player)
             Vector2 pos = Vector2{static_cast<float>(i), static_cast<float>(j)};
             if (terrains.count(pos) == 0)
             {
-                terrains[pos] = std::make_unique<Terrain>(i * WIDTH, j * HEIGHT);
+                terrains[pos] = std::make_unique<Terrain>(i * WIDTH, j * HEIGHT, rm);
             }
         }
     }
@@ -134,8 +125,8 @@ void TerrainManager::LoadTerrains(Player &player)
 
 void TerrainManager::DrawTerrains(SceneContext *sceneCtx, bool shadowPass, Player &player)
 {
+    // std::cout <<"terrains are being drawn\n";
     frustum.Extract();
-    // std::cout << "[TERRAINS BEING DRAWN]:\n";
     for (auto &[pos, terrain] : terrains)
     {
         if (frustum.AABBoxIn(terrain->getBBox().min, terrain->getBBox().max))

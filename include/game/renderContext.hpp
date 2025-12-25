@@ -20,7 +20,7 @@ struct SceneContext
 
 struct shadowMapData
 {
-    RenderTexture2D shadowMap;
+    RenderTexture2D *shadowMap;
     Matrix lightView;
     Matrix lightProj;
     Matrix lightViewProj;

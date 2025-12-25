@@ -7,6 +7,7 @@
 #include "raymath.h"
 #include "renderContext.hpp"
 #include "shader.hpp"
+#include "game/resource.hpp"
 //#include "utils.h"
 #include <set>
 
@@ -14,13 +15,13 @@ class Grass
 {
   private:
     std::set<Vector2> grassPos;
-    Model grass;
+    Model *grass;
     Matrix *transforms;
     Material matInstances;
     int totalInstances;
 
   public:
-    void InitGrass(float offset_x, float offset_y, float noise, float heightFactor, float width, float height);
+    void InitGrass(float offset_x, float offset_y, float noise, float heightFactor, float width, float height, ResourceManager *rm);
     void DrawGrass(Camera3D &camera, SceneContext *sceneCtx);
     void Animate(gfx::Shader *grassShader);
     void UnloadGrass();

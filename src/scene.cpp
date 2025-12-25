@@ -4,11 +4,11 @@
 #include "game/terrain.hpp"
 #include "raymath.h"
 
-void Scene::InitScene()
+void Scene::InitScene(ResourceManager *resources)
 {
-    player.InitPlayer();
-    terrainManager.LoadTerrains(player);
-    SetShaders();
+    player.InitPlayer(resources);
+    terrainManager.LoadTerrains(player, resources);
+    SetShaders(resources);
     SetLights();
 }
 
@@ -25,16 +25,14 @@ void Scene::UpdateScene()
     player.UpdatePlayer();
 }
 
-void Scene::SetShaders()
+void Scene::SetShaders(ResourceManager *rm)
 {
     // Terrain Shaders and Grass shaders
-    terrainManager.setShaders(&sceneCtx);
+    terrainManager.setShaders(&sceneCtx, rm);
 
     // Skybox Shaders
-    auto rm = ResourceManager::getInstance();
-    Model skybox = rm.getModel("skybox");
-    sceneCtx.skyboxShader = rm.getShader("skyboxShader");
-    sceneCtx.cubemapShader = rm.getShader("cubemapShader");
+    Model &skybox = rm->getModel("skybox");
+    sceneCtx.skyboxShader = rm->getShader("skyboxShader"); sceneCtx.cubemapShader = rm->getShader("cubemapShader");
     Image img = LoadImage("assets/skybox_hazy.png");
     const int mtrCubemap = MATERIAL_MAP_CUBEMAP;
     const int userHdr = 0;
@@ -52,7 +50,7 @@ void Scene::SetShaders()
     UnloadImage(img);
 
     // init Shadow mapping shaders
-    InitShadowMapping();
+    InitShadowMapping(rm);
 }
 
 void Scene::SetLights()
@@ -110,11 +108,10 @@ void Scene::UpdateShaders()
     sceneCtx.lightDir = Vector3Normalize(Vector3Subtract(sceneCtx.lightCam.target, sceneCtx.lightCam.position));
 }
 
-void Scene::InitShadowMapping()
+void Scene::InitShadowMapping(ResourceManager *rm)
 {
-    auto rm = ResourceManager::getInstance();
-    shadowData.shadowMap = rm.LoadShadowmapRenderTexture(SHADOWMAP_RESOLUTION, SHADOWMAP_RESOLUTION);
-    sceneCtx.shadowMapShader = rm.getShader("shadowMapShader");
+    shadowData.shadowMap = rm->getShadowMap();
+    sceneCtx.shadowMapShader = rm->getShader("shadowMapShader");
     sceneCtx.shadowMapShader->addUniform("mvp");
     sceneCtx.shadowMapShader->addUniform("matModel");
     sceneCtx.shadowMapShader->addUniform("matNormal");
@@ -130,7 +127,7 @@ void Scene::InitShadowMapping()
 
 void Scene::RenderShadowMap()
 {
-    BeginTextureMode(shadowData.shadowMap);
+    BeginTextureMode(*shadowData.shadowMap);
     ClearBackground(WHITE);
     BeginMode3D(sceneCtx.lightCam);
     shadowData.lightView = rlGetMatrixModelview();
@@ -146,11 +143,12 @@ void Scene::RenderShadowMap()
     EndTextureMode();
 }
 
-void Scene::DrawScene()
+void Scene::DrawScene(ResourceManager *rm)
 {
-    BeginDrawing();
+    if(rm == nullptr){
+        std::cout <<"RM iS NULL in DrawScene !\n";
+    }
     RenderShadowMap();
-    auto &rm = ResourceManager::getInstance();
     ClearBackground(BLACK);
 
     BeginMode3D(player.camera);
@@ -158,18 +156,18 @@ void Scene::DrawScene()
     // Draw skybox
     rlDisableBackfaceCulling();
     rlDisableDepthMask();
-    DrawModel(rm.getModel("skybox"), Vector3{0, 0, 0}, 1.0f, WHITE);
+    DrawModel(rm->getModel("skybox"), Vector3{0, 0, 0}, 1.0f, WHITE);
     rlEnableBackfaceCulling();
     rlEnableDepthMask();
 
     rlActiveTextureSlot(shadowData.shadowMapSlot);
-    rlEnableTexture(shadowData.shadowMap.depth.id);
+    rlEnableTexture(shadowData.shadowMap->depth.id);
     rlEnableShader(sceneCtx.grassShader->getShader().id);
     rlSetUniform(sceneCtx.grassShader->getUniformLoc("shadowMap"), &shadowData.shadowMapSlot, SHADER_UNIFORM_INT, 1);
     terrainManager.DrawTerrains(&sceneCtx, false, player);
 
     rlActiveTextureSlot(shadowData.shadowMapSlot);
-    rlEnableTexture(shadowData.shadowMap.depth.id);
+    rlEnableTexture(shadowData.shadowMap->depth.id);
     rlEnableShader(sceneCtx.terrainShader->getShader().id);
     rlSetUniform(sceneCtx.terrainShader->getUniformLoc("shadowMap"), &shadowData.shadowMapSlot, SHADER_UNIFORM_INT, 1);
 
@@ -178,5 +176,4 @@ void Scene::DrawScene()
     player.DrawPlayer(&sceneCtx);
     EndShaderMode();
     EndMode3D();
-    EndDrawing();
 }
